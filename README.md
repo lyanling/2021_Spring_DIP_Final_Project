@@ -2,3 +2,4 @@
 
 * usage:
   `import morphology.thinning as thin`
+  `out_img = thin.thinning(img)`
