@@ -13,9 +13,9 @@ def get_orientation(img):
     for i in range(h):
         for j in range(w):
             if g_r[i][j] != 0:
-                theta[i][j] = math.atan(g_c[i][j]/g_r[i][j])
+                theta[i][j] = math.atan(g_c[i][j]/g_r[i][j])/(math.pi/2)*90
             elif g_c[i][j] > 0:
-                theta[i][j] = math.pi/2
+                theta[i][j] = 90
             elif g_c[i][j] < 0:
-                theta[i][j] = -math.pi/2
+                theta[i][j] = -90
     return theta
