@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import os
 
-def bounding_box(file_dir):
+def get_bounding_box(file_dir):
     new_dir = file_dir+'_box'
     os.mkdir(new_dir)
     for idx in range(33, 127):  # ASCII:33~126
