@@ -3,7 +3,7 @@ import cv2
 import math
 from scipy import signal
 
-def get_orientaion(img):
+def get_orientation(img):
     h, w = img.shape
     f_r = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])/4
     f_c = f_r.T
