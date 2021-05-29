@@ -1,10 +1,10 @@
 import cv2
 import numpy as np
-import os
+from pathlib import Path
 
-def get_bounding_box(file_dir):
+def get_bounding_box(file_dir, start_idx=33, end_idx=126):
     new_dir = file_dir+'_box'
-    os.mkdir(new_dir)
+    Path(new_dir).mkdir(parents=True, exist_ok=True)
     for idx in range(33, 127):  # ASCII:33~126
         word = cv2.imread(file_dir+'/'+str(idx)+'.png', cv2.IMREAD_GRAYSCALE)
         # boundary
