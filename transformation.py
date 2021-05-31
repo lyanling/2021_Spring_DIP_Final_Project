@@ -58,5 +58,4 @@ def transform(cut_points_list, parts):
         
         trans_parts.append(new_part)
         trans_cut_points.append(new_cut_points)
-        return new_cut_points, new_part
-    return 
+    return new_cut_points, new_part
