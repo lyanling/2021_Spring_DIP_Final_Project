@@ -76,7 +76,7 @@ def transform(cut_points_list, parts):
             for j in range(len(pair)):
                 if j == i: continue
                 if cut_points_pairs[pair[i][0]]==[0]:
-                    cut_points_pairs[pair[i][0]] = [[pair[j][0], pair[i][1], pair[j][1]]]
+                    cut_points_pairs[pair[i][0]] = [(pair[j][0], pair[i][1], pair[j][1])]
                 else:
-                    cut_points_pairs[pair[i][0]].append([pair[j][0], pair[i][1], pair[j][1]])
+                    cut_points_pairs[pair[i][0]].append((pair[j][0], pair[i][1], pair[j][1]))
     return cut_points_pairs, trans_parts
