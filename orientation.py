@@ -3,6 +3,10 @@ import cv2
 import math
 from scipy import signal
 
+def inv(img):
+    full_img = np.full(img.shape, 255)
+    return full_img-img
+
 def get_orientation(img):
     h, w = img.shape
 
