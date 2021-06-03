@@ -1,6 +1,6 @@
 import numpy as np
 import cv2 as cv
-
+from orientation_comparison import has_similar_orientation
 def find_next_pixel(img_bool, orientation, i, j, i_s, j_s):
     # the center pixel
     i_c = i-i_s
@@ -17,14 +17,15 @@ def find_next_pixel(img_bool, orientation, i, j, i_s, j_s):
             if not img_bool[x][y]:
                 continue
             o = orientation[x][y]
-            if abs(o-o_c) <= threshold_angle:
-                candidates.append((x+i_s, y+j_s))
-            if o_c >= 90 - threshold_angle and o <= -90 + threshold_angle:
-                if (90 - o_c) + (o + 90) <= threshold_angle:
-                    candidates.append((x+i_s, y+j_s))
-            if o >= 90 - threshold_angle and o_c <= -90 + threshold_angle:
-                if (90 - o) + (o_c + 90) <= threshold_angle:
-                    candidates.append((x+i_s, y+j_s))
+            if has_similar_orientation(o_c, o, threshold=threshold_angle)
+            # if abs(o-o_c) <= threshold_angle:
+            #     candidates.append((x+i_s, y+j_s))
+            # if o_c >= 90 - threshold_angle and o <= -90 + threshold_angle:
+            #     if (90 - o_c) + (o + 90) <= threshold_angle:
+            #         candidates.append((x+i_s, y+j_s))
+            # if o >= 90 - threshold_angle and o_c <= -90 + threshold_angle:
+            #     if (90 - o) + (o_c + 90) <= threshold_angle:
+            #         candidates.append((x+i_s, y+j_s))
     return candidates
 
 

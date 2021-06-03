@@ -57,14 +57,16 @@ def extractFrames(img, label, count, img_bool, start_ascii_code):
         y.append(I[1].min())
     x, y = np.array(x), np.array(y)
     ind = np.argsort(x)
-    rows_i = [ind[i*8:(i+1)*8] for i in range(10)]
-    rows = [y[rows_i[i]] for i in range(10)]
+    rows_i = [ind[i*3:(i+1)*3] for i in range(2)]
+    rows = [y[rows_i[i]] for i in range(2)]
     sort_ind = np.zeros((1, 0), dtype=int)
     for i in range(len(rows)):
         r = (rows_i[i][np.argsort(rows[i])]).astype(int).reshape((1, -1))
         sort_ind = np.concatenate((sort_ind, r), axis=1)
     sort_ind = sort_ind.flatten()
+
     error_count = 0
+    print(count)
     for i in range(count):
         I = np.where(label == sort_ind[i] + 1)
         if I[0].size < 100:
@@ -94,4 +96,7 @@ MP = morpho.MorphologicalProcessing(raw_frame, t=85)
 # cv.destroyAllWindows()
 start_letter = 'A'
 count, label = MP.objectCounting()
+# cv.imshow('check.png', (label * (255 / label.max())).astype(np.uint8))
+# cv.waitKey(0)
+# cv.destroyAllWindows()
 extractFrames(MP.img_check, label, count, MP.img, ord(start_letter))
