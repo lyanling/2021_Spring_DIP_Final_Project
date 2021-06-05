@@ -388,13 +388,39 @@ def check_orientation(orient_1, orient_2, threshold):
 		return True
 	return False
 
+def near_aver_orient(orient, aver):
+	diff = get_orient_diff(orient, aver)
+	new_orient = orient
+	if (diff != abs(orient - aver)):
+		new_orient = orient + 180
+		if (new_orient < 270):
+			new_orient += 360
+		elif new_orient == 270:
+			new_orient = 90
+	return new_orient
+
 def count_orientation(part, orientation):
 	point_num = 0
 	orientation_sum = 0
+	# quad_1_count = 0
+	# for point in part:
+	# 	if (orientation[point] < 90):
+	# 		quad_1_count += 1
 	for point in part:
 		orientation_sum += orientation[point]
 		point_num += 1
-	return orientation_sum / point_num
+	aver = orientation_sum / point_num
+
+	point_num = 0
+	orientation_sum = 0
+	for point in part:
+		new_orient = near_aver_orient(orientation[point], aver)
+		if (abs(new_orient - aver) > 60):
+			continue
+		orientation_sum += new_orient
+		point_num += 1
+	aver = orientation_sum / point_num
+	return aver
 
 def get_aver_orientation(parts, orientation):
 	aver_orientation = []
@@ -439,7 +465,7 @@ def merge_pwso(orientation, aver_orientation, cut_points, new_cut_points, connec
 		parts.remove(best_part)
 		merge_pwso(orientation, aver_orientation, cut_points, new_cut_points, connect_list, parts, c_part, best_connect_label, threshold, aver_orient_label)
 
-def merge_parts_with_similar_orientation(cut_point_img, connect_list, img_label, cut_points, parts, orientation, threshold=30):
+def merge_parts_with_similar_orientation(cut_point_img, connect_list, img_label, cut_points, parts, orientation, threshold=25):
 	aver_orientation = get_aver_orientation(parts, orientation)
 	# print(aver_orientation)
 	new_cut_points = cut_points.copy()
