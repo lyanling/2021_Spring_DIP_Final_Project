@@ -51,8 +51,14 @@ def cleanBoundary(img, img_bool, manual=False, width=6):
 def extractFrames(img, label, count, img_bool, start_ascii_code):
     Path(f"./frames").mkdir(parents=True, exist_ok=True)
     x, y = [], [] # the upper-left corner of each frame
+    error_count = 0
     for i in range(1, count+1):
         I = np.where(label == i)
+        if I[0].size < 30000:
+            label[I] = 0
+            error_count += 1
+            continue
+        label[I] = i - error_count
         x.append(I[0].min())
         y.append(I[1].min())
     x, y = np.array(x), np.array(y)
@@ -64,14 +70,10 @@ def extractFrames(img, label, count, img_bool, start_ascii_code):
         r = (rows_i[i][np.argsort(rows[i])]).astype(int).reshape((1, -1))
         sort_ind = np.concatenate((sort_ind, r), axis=1)
     sort_ind = sort_ind.flatten()
-
-    error_count = 0
+    count -= error_count
     print(count)
     for i in range(count):
         I = np.where(label == sort_ind[i] + 1)
-        if I[0].size < 100:
-            error_count += 1
-            continue
         x_max, x_min, y_max, y_min = I[0].max(), I[0].min(), I[1].max(), I[1].min()
         frame = np.zeros((x_max-x_min+1, y_max-y_min+1), dtype=np.uint8)
         frame_bool = np.zeros((x_max-x_min+1, y_max-y_min+1), dtype=bool)
@@ -81,8 +83,9 @@ def extractFrames(img, label, count, img_bool, start_ascii_code):
         frame, frame_bool = cleanBoundary(frame, frame_bool)
         # img_frame_bool = np.where(frame_bool == True, 0, 255)
         # cv.imwrite(f'./frames/bool_check_{start_ascii_code + i - error_count}.png', img_frame_bool)
-        cv.imwrite(f'./frames/{start_ascii_code + i - error_count}.png', frame)
+        cv.imwrite(f'./frames/{start_ascii_code + i}.png', frame)
     return
+
 
 
 # read in image
@@ -100,3 +103,10 @@ count, label = MP.objectCounting()
 # cv.waitKey(0)
 # cv.destroyAllWindows()
 extractFrames(MP.img_check, label, count, MP.img, ord(start_letter))
+
+
+def pre_processing(frame_path, threshold, start_letter):
+    raw_frame = cv.imread(frame_path, cv.IMREAD_GRAYSCALE)
+    MP = morpho.MorphologicalProcessing(raw_frame, t=85)
+    count, label = MP.objectCounting()
+    extractFrames(MP.img_check, label, count, MP.img, ord(start_letter))
