@@ -105,8 +105,11 @@ count, label = MP.objectCounting()
 extractFrames(MP.img_check, label, count, MP.img, ord(start_letter))
 
 
-def pre_processing(frame_path, threshold, start_letter):
-    raw_frame = cv.imread(frame_path, cv.IMREAD_GRAYSCALE)
-    MP = morpho.MorphologicalProcessing(raw_frame, t=85)
-    count, label = MP.objectCounting()
-    extractFrames(MP.img_check, label, count, MP.img, ord(start_letter))
+def pre_processing(dir, threshold):
+    for i in range(16):
+        start_ascii_code = 33 + i * 6
+        img_path = f'{dir}/{i}.jpg'
+        img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)
+        MP = morpho.MorphologicalProcessing(img, t=threshold)
+        count, label = MP.objectCounting()
+        extractFrames(MP.img_check, label, count, MP.img, start_ascii_code)
