@@ -1,4 +1,3 @@
-import sys
 import numpy as np
 import cv2 as cv
 import MorphologicalProcessing as morpho
@@ -88,27 +87,27 @@ def extractFrames(img, label, count, img_bool, start_ascii_code):
 
 
 
-# read in image
-frame_path = sys.argv[1]
-raw_frame = cv.imread(frame_path, cv.IMREAD_GRAYSCALE)
+# # read in image
+# frame_path = sys.argv[1]
+# raw_frame = cv.imread(frame_path, cv.IMREAD_GRAYSCALE)
 
-# find the frame
-MP = morpho.MorphologicalProcessing(raw_frame, t=85)
-# cv.imshow('check.png', MP.img_check)
-# cv.waitKey(0)
-# cv.destroyAllWindows()
-start_letter = 'A'
-count, label = MP.objectCounting()
-# cv.imshow('check.png', (label * (255 / label.max())).astype(np.uint8))
-# cv.waitKey(0)
-# cv.destroyAllWindows()
-extractFrames(MP.img_check, label, count, MP.img, ord(start_letter))
+# # find the frame
+# MP = morpho.MorphologicalProcessing(raw_frame, t=85)
+# # cv.imshow('check.png', MP.img_check)
+# # cv.waitKey(0)
+# # cv.destroyAllWindows()
+# start_letter = 'A'
+# count, label = MP.objectCounting()
+# # cv.imshow('check.png', (label * (255 / label.max())).astype(np.uint8))
+# # cv.waitKey(0)
+# # cv.destroyAllWindows()
+# extractFrames(MP.img_check, label, count, MP.img, ord(start_letter))
 
 
-def pre_processing(dir, threshold):
+def pre_processing(dir, threshold, suffix = '.jpg'):
     for i in range(16):
         start_ascii_code = 33 + i * 6
-        img_path = f'{dir}/{i}.jpg'
+        img_path = f'{dir}/{i}{suffix}'
         img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)
         MP = morpho.MorphologicalProcessing(img, t=threshold)
         count, label = MP.objectCounting()

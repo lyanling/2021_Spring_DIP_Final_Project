@@ -54,7 +54,7 @@ def draw_line(img_left, img_right, match, space):
     m_r, n_r = img_right.shape
     img_combined = np.zeros((max(m_l, m_r), n_l + n_r + space))
     if space == 0:
-        img_combined[, :n_l] = img_left
+        img_combined[ :n_l] = img_left
     
     return
 
