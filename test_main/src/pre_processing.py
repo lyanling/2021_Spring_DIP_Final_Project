@@ -3,6 +3,8 @@ import cv2 as cv
 import MorphologicalProcessing as morpho
 from pathlib import Path
 import bounding_box as box
+import time
+
 def cleanBoundary(img, img_bool, manual=False, width=6):
     m, n = img.shape
     last_s = 0
@@ -48,6 +50,7 @@ def cleanBoundary(img, img_bool, manual=False, width=6):
     return img, img_bool
 
 def extractFrames(img, label, count, img_bool, start_ascii_code, out_path):
+    start = time.time()
     x, y = [], [] # the upper-left corner of each frame
     error_count = 0
     bottom_line_list = []
@@ -71,7 +74,11 @@ def extractFrames(img, label, count, img_bool, start_ascii_code, out_path):
         sort_ind = np.concatenate((sort_ind, r), axis=1)
     sort_ind = sort_ind.flatten()
     count -= error_count
+    end = time.time()
+    print("extract prep time: ", end-start)
     for i in range(count):
+        print(i)
+        start = time.time()
         I = np.where(label == sort_ind[i] + 1)
         x_max, x_min, y_max, y_min = I[0].max(), I[0].min(), I[1].max(), I[1].min()
         frame = np.zeros((x_max-x_min+1, y_max-y_min+1), dtype=np.uint8)
@@ -82,13 +89,18 @@ def extractFrames(img, label, count, img_bool, start_ascii_code, out_path):
         frame, frame_bool = cleanBoundary(frame, frame_bool)
         bounding_frame, bottom_line = box.get_bounding_box(frame)
         bottom_line_list.append(bottom_line)
-        if bounding_frame != None:
+        if not (bounding_frame == 255).all():
             cv.imwrite(f'{out_path}/{start_ascii_code + i}.png', bounding_frame)
+        end = time.time()
+        print('time: ', end-start)
     return bottom_line_list
 
 def pre_processing_on_img(MP, start_ascii_code, out_path):
+    start = time.time()
     print('start counting')
     count, label = MP.objectCounting()
+    end = time.time()
+    print('counting time: ', end-start)
     return extractFrames(MP.img_check, label, count, MP.img, start_ascii_code, out_path)
 
 def comfirm_thresholding(img, threshold):
@@ -112,7 +124,8 @@ def comfirm_thresholding(img, threshold):
     cv.waitKey(1)
     return MP
 
-def pre_processing(in_path, threshold, out_path, extension):        
+def pre_processing(in_path, out_path, extension):    
+    threshold = 90    
     frame_path = Path(f"{out_path}/frames")
     frame_path.mkdir(parents=True, exist_ok=True)
     frame_path = str(frame_path)
@@ -126,6 +139,6 @@ def pre_processing(in_path, threshold, out_path, extension):
     bottom_line = []
     for i in range(1):
         bottom_line += pre_processing_on_img(thresholded_imgs[i], start_ascii_code, frame_path)
-    with open(frame_path + "bottom_line.txt", "w") as f:
+    with open(frame_path + "/bottom_line.txt", "w") as f:
         f.writelines("%s\n" % l for l in bottom_line)
     return frame_path

@@ -22,7 +22,8 @@ def save_cut_points(img, i, cut_points, out_path):
     cut_points_img = np.copy(img)
     cut_points_img_name = f'{cut_p_dir}/{i}.png'
     cut_points = np.array(cut_points).T
-    cut_points_img[tuple([cut_points[0], cut_points[1]])] = 100
+    if cut_points.size > 0:
+        cut_points_img[tuple([cut_points[0], cut_points[1]])] = 100
     cv.imwrite(cut_points_img_name, cut_points_img.astype(np.uint8))
 
 def save_parts(img, i, parts, out_path):
@@ -41,6 +42,7 @@ def save_parts(img, i, parts, out_path):
     
 def save_classify(img, i, label, out_path):
     class_dir = Path(f'{out_path}/classification')
+    class_dir.mkdir(parents=True, exist_ok=True)
     full_label = clf.classify(img, label)
     save_img = full_label * (255 / full_label.max())
     save_img_path = f'{class_dir}/{i}.png'
