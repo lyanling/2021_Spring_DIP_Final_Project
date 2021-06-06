@@ -39,8 +39,10 @@ def adjust_connect_list_2(h, w, connect_list, label, M):
 def getPartImg(h, w, part, extend):
     part_img = np.zeros([h, w])
     part_img.fill(255)
-    for point in part:
-        part_img[(point[0], point[1])] = 0
+    part_pos = np.array(part).T + extend
+    part_img[tuple([part_pos[0], part_pos[1]])] = 0
+    # for point in part:
+    #     part_img[(point[0] + extend, point[1] + extend)] = 0
     return part_img
 
 def getPartFromImg(part_img):
@@ -98,17 +100,40 @@ def transform(img, parts, connect_list):
         # backward transformation
         trans_img = np.zeros_like(part_img)
         trans_img.fill(255)
-        for i in range(h):
-            for j in range(w):
-                (x, y) = gm.to_cart(j, i, h)    # to cartesian coordinate
-                in_vec = np.array([x, y, 1])    # input vector
-                u, v, z = np.dot(M_inv, in_vec)
-                c_point = gm.to_img_coord(u, v, h)  # to img coordinate
-                # trans_img[i, j] = gm.bilinear_interpolation(part_img, c_point)    # bilinear interpolation is not applicable in this case
-                c_i = max(min(h-1, round(c_point[0])), 0)   # find the nearest integer
-                c_j = max(min(w-1, round(c_point[1])), 0)
-                trans_img[i, j] = part_img[c_i, c_j]
+        trans_pos = np.meshgrid(range(h), range(w), indexing='ij').astype(int)
+        cart_x = trans_pos[1]
+        cart_y = h-1-trans_pos[0]
+        cart_x -= w//2
+        cart_y -= h//2
+        trans_cart = np.r_[cart_x, cart_y, np.ones((1, trans_pos[0].size))]
+        trans_cart = np.matmul(M_inv, trans_cart)
+        trans_cart[0] += w//2
+        trans_cart[1] += h//2
+        trans_pos[0] = h-1-trans_cart[1]
+        trans_pos[1] = trans_cart[0]
+        trans_pos[0][trans_pos[0] < 0] = 0
+        trans_pos[1][trans_pos[1] < 0] = 0
+        trans_pos[0][trans_pos[0] > h-1] = h-1
+        trans_pos[1][trans_pos[1] > w-1] = w-1
 
+        trans_pos[0] = np.round(trans_pos[0]).astype(int)
+        trans_pos[1] = np.round(trans_pos[1]).astype(int)
+        trans_img = part_img[trans_pos]
+
+        # interp may be slow :( (
+        
+
+
+        # for i in range(h):
+        #     for j in range(w):
+        #         (x, y) = gm.to_cart(j, i, h)    # to cartesian coordinate
+        #         in_vec = np.array([x, y, 1])    # input vector
+        #         u, v, z = np.dot(M_inv, in_vec)
+        #         c_point = gm.to_img_coord(u, v, h)  # to img coordinate
+        #         # trans_img[i, j] = gm.bilinear_interpolation(part_img, c_point)    # bilinear interpolation is not applicable in this case
+        #         c_i = max(min(h-1, round(c_point[0])), 0)   # find the nearest integer
+        #         c_j = max(min(w-1, round(c_point[1])), 0)
+        #         trans_img[i, j] = part_img[c_i, c_j]
 
         # adjust connect point pair
         adjust_connect_list_2(h, w, connect_list, n+1, M)
