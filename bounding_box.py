@@ -23,16 +23,24 @@ def get_bounding_box(file_dir, start_idx=33, end_idx=126):
         word_bobox = thin_word[h1:h2+1, w1:w2+1]
         cv2.imwrite(new_dir+str(idx)+'.png', word_bobox)
         # bottom line
-        bottom_line.append(int(word.shape[0]*(2/3)-h1))
-
+        bottom_line.append([idx, int(word.shape[0]*(2/3)-h1)])
+    
     with open(new_dir+"bottom_line.txt", "w") as f:
-        f.writelines("%s\n" % l for l in bottom_line)    
+        f.writelines(str(l[0])+' '+str(l[1])+'\n' for l in bottom_line)    
     return new_dir
 
 def get_bottom_line(file_dir):
     bottom_line = []
-    with open(file_dir+'_box/bottom_line.txt', 'r') as f:
-        bottom_line = [int(l.rstrip()) for l in f.readlines()]
-    return(bottom_line)
+    with open(file_dir+'/bottom_line.txt', 'r') as f:
+        bottom_line = [l.split() for l in f.readlines()]
+    d = dict()
+    for bm in bottom_line:
+        d[int(bm[0])] = int(bm[1])
+    return d
 
 
+def get_combined_bottom_line(img, idx, file_dir):
+    bottom_line = get_bottom_line(file_dir)
+    old = cv2.imread(file_dir+'/'+str(idx)+'.png', cv2.IMREAD_GRAYSCALE)
+    new_bottom_line = int(bottom_line[idx]+(img.shape[0]/2-old.shape[0]/2))
+    return new_bottom_line
