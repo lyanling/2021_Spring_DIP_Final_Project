@@ -527,8 +527,6 @@ def find_cut_point(img, orientation, threshold=45):
 	new_cut_points, parts = merge_parts_with_similar_orientation(cut_point_img, connect_list, img_label, new_cut_points, parts, orientation)
 
 	parts.sort(key=len, reverse=True)
-	for part in parts:
-		print(len(part))
 
 	aver_orientation = get_aver_orientation(parts, orientation)
 	# print(aver_orientation)
@@ -543,4 +541,4 @@ def find_cut_point(img, orientation, threshold=45):
 			connect_list[label-1][i+1] = point
 	# print(connect_list)
 
-	return new_cut_points, parts
+	return new_cut_points, parts, connect_list
