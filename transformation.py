@@ -22,8 +22,9 @@ def shift_part(parts, label, shift_value):
 
 
 def adjust_connect_list_2(h, w, connect_list, label, M):
-    # print(label)
-    # print(len(connect_list))
+    # get the new position of connecting point, and adjust the connect_list
+    # connect_list: [{part1's connection}, {part2's connection}, {part3's connection}]
+        # part1's cpnnection: {2: point A, 3: point B}  -> connect to part2's point A, and part3's point B
     connect_labels = list(connect_list[label-1])
     for connect_label in connect_labels:
         point = connect_list[connect_label-1][label]
@@ -72,14 +73,13 @@ def transform(img, parts, connect_list):
 
     for n in range(len(parts)):
         part = parts[n]
-        part_img = getPartImg(h, w, part, extend)
-        center = min(part)
-        print(center)
-        cart_center = gm.to_cart(center[1], center[0], h)
-        print(cart_center)
+        part_img = getPartImg(h, w, part, extend)   # convert the part into an image
+        center = min(part)  # center at the point with smallest r
+        cart_center = gm.to_cart(center[1], center[0], h)   # to cartesian coordinate
+
         # translation
         T = np.array([[1, 0, -cart_center[0]], [0, 1, -cart_center[1]], [0, 0, 1]])
-        TB = np.array([[1, 0, cart_center[0]], [0, 1, cart_center[1]], [0, 0, 1]])
+        TB = np.array([[1, 0, cart_center[0]], [0, 1, cart_center[1]], [0, 0, 1]])  # translate back
 
         # scaling
         scale_mag = random.uniform(scale_range[0], scale_range[1])
@@ -90,7 +90,6 @@ def transform(img, parts, connect_list):
         R = np.array([[math.cos(dt), -math.sin(dt), 0], [math.sin(dt), math.cos(dt), 0], [0, 0, 1]])
 
         # transform matrix
-        # M = T
         M = np.matmul(S, T)
         M = np.matmul(R, M)
         M = np.matmul(TB, M)
@@ -101,23 +100,21 @@ def transform(img, parts, connect_list):
         trans_img.fill(255)
         for i in range(h):
             for j in range(w):
-                (x, y) = gm.to_cart(j, i, h)
-                in_vec = np.array([x, y, 1])
+                (x, y) = gm.to_cart(j, i, h)    # to cartesian coordinate
+                in_vec = np.array([x, y, 1])    # input vector
                 u, v, z = np.dot(M_inv, in_vec)
-                c_point = gm.to_img_coord(u, v, h)
-                # trans_img[i, j] = gm.bilinear_interpolation(part_img, c_point)
-                c_i = max(min(h-1, round(c_point[0])), 0)
+                c_point = gm.to_img_coord(u, v, h)  # to img coordinate
+                # trans_img[i, j] = gm.bilinear_interpolation(part_img, c_point)    # bilinear interpolation is not applicable in this case
+                c_i = max(min(h-1, round(c_point[0])), 0)   # find the nearest integer
                 c_j = max(min(w-1, round(c_point[1])), 0)
-                # print(c_i, c_j)
                 trans_img[i, j] = part_img[c_i, c_j]
 
 
-        # # change connect point pair
+        # adjust connect point pair
         adjust_connect_list_2(h, w, connect_list, n+1, M)
 
         # get new part
         new_part = getPartFromImg(trans_img)
-        # new_part = getPartFromImg(part_img)
         trans_parts.append(new_part)
     
     return new_img, trans_parts, connect_list
