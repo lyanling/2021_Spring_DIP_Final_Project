@@ -1,6 +1,6 @@
 import cv2 as cv
 import numpy as np
-from orientation_comparison import has_similar_orientation
+from orientaion_comparison import has_similar_orientation
 
 def find_combine_point(img, ori, side, count):
     pos_x, pos_y = np.where(img == 0)
@@ -52,13 +52,20 @@ def draw_line(img_left, img_right, match, space):
     pos_left, pos_right, ori_left, ori_right, floor_left, floor_right = match
     m_l, n_l = img_left.shape
     m_r, n_r = img_right.shape
-    img_combined = np.zeros((max(m_l, m_r), n_l + n_r + space))
-    if space == 0:
-        img_combined[ :n_l] = img_left
+    floor_above = max(floor_left, floor_right, 0)
+    floor_below = max(m_l-floor_left, m_r - floor_right, 0)
+    img_combined = np.zeros((floor_above+floor_below, n_l + n_r + space))
+    start_left = floor_above - floor_left
+    start_right = floor_above - floor_right
+    img_combined[start_left:start_left+m_l, :n_l] = img_left
+    img_combined[start_right:start_right+m_r, -n_r:] = img_right
+    # draw
     
     return
 
-def combine_parts(img_left, img_right, ori_left, ori_right, floor_left, floor_right, expected_dist, count=5):
+def combine_char(img_left, img_right, ori_left, ori_right, floor_left, floor_right, expected_dist, count=5):
+    if img_left == None:
+        return img_right, floor_right
     cpoint_pos_left, cpoint_ori_left = find_combine_point(img_left, ori_left, 'left', count)
     cpoint_pos_right, cpoint_ori_right = find_combine_point(img_right, ori_right, 'right', count)
     matches = []

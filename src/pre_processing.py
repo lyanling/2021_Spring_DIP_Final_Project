@@ -47,8 +47,7 @@ def cleanBoundary(img, img_bool, manual=False, width=6):
     img_bool = img_bool.T
     return img, img_bool
 
-def extractFrames(img, label, count, img_bool, start_ascii_code):
-    Path(f"./frames").mkdir(parents=True, exist_ok=True)
+def extractFrames(img, label, count, img_bool, start_ascii_code, out_path):
     x, y = [], [] # the upper-left corner of each frame
     error_count = 0
     for i in range(1, count+1):
@@ -80,9 +79,7 @@ def extractFrames(img, label, count, img_bool, start_ascii_code):
         frame[I_frame] = img[I]
         frame_bool[I_frame] = img_bool[I]
         frame, frame_bool = cleanBoundary(frame, frame_bool)
-        # img_frame_bool = np.where(frame_bool == True, 0, 255)
-        # cv.imwrite(f'./frames/bool_check_{start_ascii_code + i - error_count}.png', img_frame_bool)
-        cv.imwrite(f'./frames/{start_ascii_code + i}.png', frame)
+        cv.imwrite(f'{out_path}/{start_ascii_code + i}.png', frame)
     return
 
 
@@ -103,12 +100,19 @@ def extractFrames(img, label, count, img_bool, start_ascii_code):
 # # cv.destroyAllWindows()
 # extractFrames(MP.img_check, label, count, MP.img, ord(start_letter))
 
+def pre_processing_on_img(img, threshold, start_ascii_code, out_path):
+    MP = morpho.MorphologicalProcessing(img, t=threshold)
+    count, label = MP.objectCounting()
+    extractFrames(MP.img_check, label, count, MP.img, start_ascii_code, out_path)
+    return 
 
-def pre_processing(dir, threshold, suffix = '.jpg'):
+def pre_processing(in_path, threshold, out_path, extension):        
+    frame_path = Path(f"{out_path}/frames")
+    frame_path.mkdir(parents=True, exist_ok=True)
+    frame_path = str(frame_path)
     for i in range(16):
         start_ascii_code = 33 + i * 6
-        img_path = f'{dir}/{i}{suffix}'
+        img_path = f"{in_path}/{i}{extension}"
         img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)
-        MP = morpho.MorphologicalProcessing(img, t=threshold)
-        count, label = MP.objectCounting()
-        extractFrames(MP.img_check, label, count, MP.img, start_ascii_code)
+        pre_processing_on_img(img, threshold, start_ascii_code, frame_path)
+    return frame_path
