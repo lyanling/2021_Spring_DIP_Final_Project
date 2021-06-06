@@ -8,6 +8,7 @@ def classify(img, label_thin):
     label_img = label_thin.copy()
     last = np.array(np.where(label_thin > 0))
     new = np.zeros_like(label_thin)
+    # naive
     while(True):
         if last[0].size == 0:
             break
@@ -23,6 +24,23 @@ def classify(img, label_thin):
             new[x_m:x_M+1, y_m:y_M+1] += mask
         last = np.array(np.where(new > 0))
         new = np.zeros_like(label_thin)
+
+    # use dilation
+    # kernel = np.ones((3, 3))
+    # count = label_img.max()
+    # while(True):
+    #     fin = 0
+    #     for i in range(1, count+1):
+    #         label_part = np.where(label_img == i, 255, 0)
+    #         dilated = cv.dilate(label_part, kernel, iterations=1)
+    #         dilated = np.where(dilated == 255)
+    #         mask = img[dilated] + label_img[dilated]
+    #         mask = np.where(mask == 0, i, 0)
+    #         label_img[dilated] += mask
+    #         if (mask == 0).all:
+    #             fin += 1
+    #     if fin == count:
+    #         break
     return label_img
 
 def classify_all(dir_frame, dir_label):

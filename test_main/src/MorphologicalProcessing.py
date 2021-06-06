@@ -64,7 +64,7 @@ class MorphologicalProcessing:
         img_ret = self.boolToUint8(np.logical_not(G_new))
         return img_ret
     def objectCounting(self, connectivity=8):
-        # print('connectivity: ', connectivity)
+        print('connectivity: ', connectivity)
         count = 0
         img_hole_filled = self.holeFilling()
         img_labeled = np.zeros_like(self.img)
@@ -74,6 +74,7 @@ class MorphologicalProcessing:
             H, C_x, C_y = self.getStructuringElement('8-connectivity object counting')
         elif connectivity==4:
             H, C_x, C_y = self.getStructuringElement('4-connectivity object counting')
+        
         for x in range(m):
             for y in range(n):
                 if not img_labeled[x, y] and img_hole_filled[x, y]:
@@ -81,6 +82,7 @@ class MorphologicalProcessing:
                     # dilation until converge
                     while(True):
                         img_dilated = self.Dilation(img_labeled, H, C_x, C_y)
+                        # img_dilated = cv.dilate(img_labeled, H, iterations=1)
                         img_labeled_new = np.logical_and(img_dilated, img_hole_filled)
                         if (img_labeled_new == img_labeled).all():
                             break

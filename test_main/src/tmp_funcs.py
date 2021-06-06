@@ -7,7 +7,6 @@ from pathlib import Path
 import numpy as np
 import MorphologicalProcessing as morpho
 from modules import find_cut_point as fcp
-import divide_parts as dp
 import classification as clf
 
 def save_theta(img, i, out_path):
@@ -51,7 +50,8 @@ def save_classify(img, i, label, out_path):
 def get_frame_data(frame_path, thin_path, out_path):
     data_out_path = Path(f'{out_path}/data')
     data_out_path.mkdir(parents=True, exist_ok=True)
-    for i in range(33, 127):
+    for i in range(33, 33+6):
+        print(f'start getting frame {i}\'s data')
         thin_img = cv.imread(f'{thin_path}/{i}.png', cv.IMREAD_GRAYSCALE)
         frame = cv.imread(f'{frame_path}/{i}.png', cv.IMREAD_GRAYSCALE)
         theta = orient.get_orientation(thin_img)
@@ -60,7 +60,7 @@ def get_frame_data(frame_path, thin_path, out_path):
         save_cut_points(thin_img, i, cut_points, out_path)
         label = save_parts(thin_img, i, parts, out_path)
         full_label = save_classify(frame, i, label, out_path)
-        frame_data = [cut_points, full_label]
+        frame_data = full_label
         with open(f'{data_out_path}/{i}.pickle', 'wb') as fout:
             pickle.dump(frame_data, fout)
     return

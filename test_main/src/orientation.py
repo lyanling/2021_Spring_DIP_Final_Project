@@ -51,5 +51,5 @@ def get_orientation(img):
             if cnt !=0:
                 orien[i][j] = sum/cnt
                 orien_img[i][j] = l/cnt
-    # cv2.imwrite("tmp.jpg", orien_img)  
+    # cv2.imwrite("tmp.jpg", orien_img)
     return orien

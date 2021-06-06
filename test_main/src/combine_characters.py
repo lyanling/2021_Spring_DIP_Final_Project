@@ -7,10 +7,10 @@ def find_combine_point(img, ori, side, count):
     sorted_idx = np.argsort(pos_x)
     if side=='left':    # find the right-most point for left img
         cpoint_pos = tuple(pos_x[sorted_idx[-count:]], pos_y[sorted_idx[-count:]])
-        cpoint_ori = tuple(pos_x[sorted_idx[-count:]], pos_y[sorted_idx[-count:]])
+        cpoint_ori = ori[cpoint_pos]
     elif side=='right':   # find the left-most point for right img 
         cpoint_pos = tuple(pos_x[sorted_idx[:count]], pos_y[sorted_idx[:count]])
-        cpoint_ori = tuple(pos_x[sorted_idx[:count]], pos_y[sorted_idx[:count]])
+        cpoint_ori = ori[cpoint_pos]
     else:
         print('find_combine_point: argument "side" should be either "left" or "right"')
         return None, None

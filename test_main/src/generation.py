@@ -20,7 +20,7 @@ def generate_word(input, paper, labels):
         code = ord(char)
         label = labels[code]
         #transform
-
+        
         #combine parts, out: combined_char
 
         # new orientation and bounding box

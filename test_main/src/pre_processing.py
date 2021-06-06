@@ -2,7 +2,7 @@ import numpy as np
 import cv2 as cv
 import MorphologicalProcessing as morpho
 from pathlib import Path
-
+import bounding_box as box
 def cleanBoundary(img, img_bool, manual=False, width=6):
     m, n = img.shape
     last_s = 0
@@ -50,11 +50,13 @@ def cleanBoundary(img, img_bool, manual=False, width=6):
 def extractFrames(img, label, count, img_bool, start_ascii_code, out_path):
     x, y = [], [] # the upper-left corner of each frame
     error_count = 0
+    bottom_line_list = []
     for i in range(1, count+1):
         I = np.where(label == i)
         if I[0].size < 30000:
             label[I] = 0
             error_count += 1
+            print(i)
             continue
         label[I] = i - error_count
         x.append(I[0].min())
@@ -69,7 +71,6 @@ def extractFrames(img, label, count, img_bool, start_ascii_code, out_path):
         sort_ind = np.concatenate((sort_ind, r), axis=1)
     sort_ind = sort_ind.flatten()
     count -= error_count
-    print(count)
     for i in range(count):
         I = np.where(label == sort_ind[i] + 1)
         x_max, x_min, y_max, y_min = I[0].max(), I[0].min(), I[1].max(), I[1].min()
@@ -79,40 +80,52 @@ def extractFrames(img, label, count, img_bool, start_ascii_code, out_path):
         frame[I_frame] = img[I]
         frame_bool[I_frame] = img_bool[I]
         frame, frame_bool = cleanBoundary(frame, frame_bool)
-        cv.imwrite(f'{out_path}/{start_ascii_code + i}.png', frame)
-    return
+        bounding_frame, bottom_line = box.get_bounding_box(frame)
+        bottom_line_list.append(bottom_line)
+        if bounding_frame != None:
+            cv.imwrite(f'{out_path}/{start_ascii_code + i}.png', bounding_frame)
+    return bottom_line_list
 
-
-
-# # read in image
-# frame_path = sys.argv[1]
-# raw_frame = cv.imread(frame_path, cv.IMREAD_GRAYSCALE)
-
-# # find the frame
-# MP = morpho.MorphologicalProcessing(raw_frame, t=85)
-# # cv.imshow('check.png', MP.img_check)
-# # cv.waitKey(0)
-# # cv.destroyAllWindows()
-# start_letter = 'A'
-# count, label = MP.objectCounting()
-# # cv.imshow('check.png', (label * (255 / label.max())).astype(np.uint8))
-# # cv.waitKey(0)
-# # cv.destroyAllWindows()
-# extractFrames(MP.img_check, label, count, MP.img, ord(start_letter))
-
-def pre_processing_on_img(img, threshold, start_ascii_code, out_path):
-    MP = morpho.MorphologicalProcessing(img, t=threshold)
+def pre_processing_on_img(MP, start_ascii_code, out_path):
+    print('start counting')
     count, label = MP.objectCounting()
-    extractFrames(MP.img_check, label, count, MP.img, start_ascii_code, out_path)
-    return 
+    return extractFrames(MP.img_check, label, count, MP.img, start_ascii_code, out_path)
+
+def comfirm_thresholding(img, threshold):
+    MP = morpho.MorphologicalProcessing(img, t=threshold)
+    wind_name = 'check threshold '
+    cv.namedWindow(wind_name)
+    while(True):
+        cv.imshow(wind_name, MP.img_check)
+        cv.waitKey(0)
+        OK = input(f"fine thresholding? Enter a number to change threshold (current: {threshold}), or enter \"Y\" if you think its good.")
+        try:
+            threshold = int(OK)
+            MP = morpho.MorphologicalProcessing(img, t=threshold)
+        except:
+            if OK == 'Y':
+                break
+            else:
+                print('Please enter an integer or \"Y\".')
+    cv.waitKey(1)
+    cv.destroyAllWindows()
+    cv.waitKey(1)
+    return MP
 
 def pre_processing(in_path, threshold, out_path, extension):        
     frame_path = Path(f"{out_path}/frames")
     frame_path.mkdir(parents=True, exist_ok=True)
     frame_path = str(frame_path)
-    for i in range(16):
+    thresholded_imgs = []
+    for i in range(1):
+        print(f'start processing image {i}...')
         start_ascii_code = 33 + i * 6
         img_path = f"{in_path}/{i}{extension}"
         img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)
-        pre_processing_on_img(img, threshold, start_ascii_code, frame_path)
+        thresholded_imgs.append(comfirm_thresholding(img, threshold))
+    bottom_line = []
+    for i in range(1):
+        bottom_line += pre_processing_on_img(thresholded_imgs[i], start_ascii_code, frame_path)
+    with open(frame_path + "bottom_line.txt", "w") as f:
+        f.writelines("%s\n" % l for l in bottom_line)
     return frame_path
