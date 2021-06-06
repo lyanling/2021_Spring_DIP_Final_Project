@@ -55,7 +55,17 @@ def getPartFromImg(part_img):
                 part.append(point)
     return part
 
-def transform(img, parts, connect_list):
+def label_to_parts(wrd_idx):
+    f = open(f'./full_label/{wrd_idx}.pickle', 'wb') 
+    arr = pickle.load(f)
+    parts = []
+    for part_id in range(arr.max(), 0, -1):
+        part = {tuple(coords) for coords in np.argwhere(arr == part_id)}
+        parts.append(part)
+    return parts
+
+def transform(img, wrd_idx, connect_list):
+    parts = label_to_parts(wrd_idx)
     h, w = img.shape
     extend = 10
     h += extend*2
