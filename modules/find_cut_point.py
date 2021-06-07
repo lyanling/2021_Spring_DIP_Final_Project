@@ -173,12 +173,13 @@ def find_next_pixel_2(parts, current_part, img_label, cut_point_img, cut_point, 
 						continue
 			if (img_label[point] > 0 and img_label[point] != current_label):
 				old_part = parts[img_label[point]-1]
-				old_aver_orient = count_orientation(old_part, orientation)
-				current_orient = count_orientation(current_part, orientation)
-				old_diff = get_orient_diff(old_aver_orient, orientation[point])
-				diff = get_orient_diff(current_orient, orientation[point])
-				if not (diff < old_diff and same_dir(current_orient, orientation[point])):	# change a point to a more proper part
-					continue
+				if (not (len(old_part) <= 0)):
+					old_aver_orient = count_orientation(old_part, orientation)
+					current_orient = count_orientation(current_part, orientation)
+					old_diff = get_orient_diff(old_aver_orient, orientation[point])
+					diff = get_orient_diff(current_orient, orientation[point])
+					if not (diff < old_diff and same_dir(current_orient, orientation[point])):	# change a point to a more proper part
+						continue
 				# print("current_label: ", current_label)
 				# print("old_label: ", img_label[point])
 				if (point in parts[img_label[point]-1]):
@@ -556,4 +557,4 @@ def find_cut_point(img, orientation, threshold=45):
 	# for i in range(len(connect_list)):
 	# 	print(i+1, connect_list[i])
 
-	return new_cut_points, parts, connect_list
+	return new_cut_points, parts, connect_list, aver_orientation

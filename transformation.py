@@ -63,7 +63,7 @@ def label_to_parts(label):
         parts.append(part)
     return parts
 
-def transform(img, label, connect_list):
+def transform(img, label, connect_list, aver_orientation):
     parts = label_to_parts(label)
     h, w = img.shape
     extend = 10
@@ -99,6 +99,7 @@ def transform(img, label, connect_list):
         # rotation
         dt = random.uniform(theta_range[0], theta_range[1]) / 360 * (math.pi)
         R = np.array([[math.cos(dt), -math.sin(dt), 0], [math.sin(dt), math.cos(dt), 0], [0, 0, 1]])
+        aver_orientation += dt
 
         # transform matrix
         M = np.matmul(S, T)
@@ -151,4 +152,4 @@ def transform(img, label, connect_list):
         new_part = getPartFromImg(trans_img)
         trans_parts.append(new_part)
     
-    return new_img, trans_parts, connect_list
+    return new_img, trans_parts, connect_list, aver_orientation

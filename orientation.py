@@ -45,13 +45,13 @@ def get_orientation(img):
             # l = 0
             for k in range(36):
                 if np.array_equal(ex_img[i:i+3, j:j+3], theta_list[k]):
-                    if k < 19:
+                    if k < 20:
                         orien[i][j] = (k+0.5)//2.5*22.5-67.5
                     else:
                         orien[i][j] = (k-16)//6*45-45
                     # orien_img[i][j] = int(((k+0.5)//2.5+1)/8*255)
                     break
-                if np.logical_and(ex_img[i:i+3, j:j+3], theta_list[k]).sum() == 3:
+                if np.logical_and(ex_img[i:i+3, j:j+3], theta_list[k]).sum() == 3 and k < 20:
                     sum += (k+0.5)//2.5*22.5-67.5
                     # l += int(((k+0.5)//2.5+1)/8*255)
                     cnt+=1
