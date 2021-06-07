@@ -10,6 +10,8 @@ parser.add_argument('data_path', help="handwriting directory generate by \"divid
 parser.add_argument('--l', dest="leading", types=int, default=0, help="leading")
 parser.add_argument('--w', dest="word_spacing", types=int, default=0, help="word-spacing")
 parser.add_argument('--t', dest="tracking", types=int, default=0, help="letter-spacing")
+parser.add_argument('--header', dest="header", types=int, default=30, help="page header")
+parser.add_argument('--footer', dest="footer", types=int, default=30, help="page footer")
 
 # letter size? color?
 
@@ -17,4 +19,4 @@ args = parser.parse_args()
 gen_path = Path(f'{args.data_path}/generate')
 gen_path.mkdir(parents=True, exist_ok=True)
 
-gen.generate_text(str(gen_path), args.data_path ,args.leading, args.word_spacing, args.tracking, )
+gen.generate_text(str(gen_path), args.data_path ,args.leading, args.word_spacing, args.tracking, args.header, args.footer)

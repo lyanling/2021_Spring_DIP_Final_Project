@@ -34,6 +34,7 @@ def new_line(page_infos):
 
 def load_infos(path):
     labels = []
+
     for i in range(33, 127):
         with open(f'{path}/data/{i}.pickle', 'rb') as fin:
             labels.append(pickle.load(fin))
