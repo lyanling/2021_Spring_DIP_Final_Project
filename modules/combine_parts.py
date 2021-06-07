@@ -36,7 +36,7 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 
 	# orientation = get_orientation(img)
 	# adjust_orientation(img, orientation)
-	parts_num = len(parts)
+	parts_num = len(bold_parts)
 
 	for i in range(len(connect_list)-1, -1, -1):
 		connect_labels = list(connect_list[i])

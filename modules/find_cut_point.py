@@ -187,7 +187,7 @@ def find_next_pixel_2(parts, current_part, img_label, cut_point_img, cut_point, 
 			points.append(point)
 	return points
 
-def remove_empty_part(parts):
+def remove_empty_parts(parts):
 	new_parts = parts.copy()
 	new_cut_points = []
 	for part in parts:
