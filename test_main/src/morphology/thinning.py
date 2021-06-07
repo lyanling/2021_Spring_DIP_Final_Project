@@ -263,7 +263,7 @@ def additional_thinning(thin_img):
 				ext_thin[rr+2, cc+1] = 255
 	return ext_thin[1:h+1, 1:w+1]
 
-def thinning(img, mode=1):
+def thinning_2(img, mode=1):
 	pre_thin = img.astype(np.uint8)
 	rounds = 0
 	H = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
@@ -299,3 +299,11 @@ def thinning(img, mode=1):
 	cv2.imwrite("thin_2.png", thin_img)
 	
 	return thin_img
+
+def thinning(img):
+	img_r = np.where(img == 0, 255, 0)
+	img_r = img_r.astype(np.uint8)
+	thinned = cv2.ximgproc.thinning(img_r) 	#
+	thinned = np.where(thinned == 0, 255, 0)
+	# cv2.imwrite("66_thin.png", thinned)
+	return thinned

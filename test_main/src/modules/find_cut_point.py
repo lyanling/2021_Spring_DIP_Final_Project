@@ -173,18 +173,29 @@ def find_next_pixel_2(parts, current_part, img_label, cut_point_img, cut_point, 
 						continue
 			if (img_label[point] > 0 and img_label[point] != current_label):
 				old_part = parts[img_label[point]-1]
-				old_aver_orient = count_orientation(old_part, orientation)
-				current_orient = count_orientation(current_part, orientation)
-				old_diff = get_orient_diff(old_aver_orient, orientation[point])
-				diff = get_orient_diff(current_orient, orientation[point])
-				if not (diff < old_diff and same_dir(current_orient, orientation[point])):	# change a point to a more proper part
-					continue
+				if (not (len(old_part) <= 0)):
+					old_aver_orient = count_orientation(old_part, orientation)
+					current_orient = count_orientation(current_part, orientation)
+					old_diff = get_orient_diff(old_aver_orient, orientation[point])
+					diff = get_orient_diff(current_orient, orientation[point])
+					if not (diff < old_diff and same_dir(current_orient, orientation[point])):	# change a point to a more proper part
+						continue
 				# print("current_label: ", current_label)
 				# print("old_label: ", img_label[point])
 				if (point in parts[img_label[point]-1]):
 					parts[img_label[point]-1].remove(point)
 			points.append(point)
 	return points
+
+def remove_empty_parts(parts):
+	new_parts = parts.copy()
+	new_cut_points = []
+	for part in parts:
+		if len(part) <= 0:
+			new_parts.remove(part)
+		else:
+			new_cut_points.append(part[0])
+	return new_cut_points, new_parts
 
 def devide_parts(img, cut_point_img, cut_points, orientation):
 	# parts = [part1, part2, part3, ...], is a list
@@ -213,11 +224,15 @@ def devide_parts(img, cut_point_img, cut_points, orientation):
 			candidates += next_pixel_pos
 		parts.append(part)
 		count += 1
+
+	new_cut_points, parts = remove_empty_parts(parts)
+
+	# for no cut points
 	if (len(parts) == 0):
 		r, c = np.where(img == 0)
 		part = list(zip(r, c))
 		parts.append(part)
-	return parts
+	return new_cut_points, parts
 
 
 def find_corresponding_part(cut_point, parts):
@@ -307,9 +322,9 @@ def merge_small(aver_orientation, cut_points, new_cut_points, cut_point, parts, 
 			merge_small_best(aver_orientation, cut_points, new_cut_points, cut_point, parts, best_part, c_part, connect_list, img_label, c_label, best_connect_label, orientation, least_num)
 		elif best_part_2 != None:
 			merge_small_best(aver_orientation, cut_points, new_cut_points, cut_point, parts, best_part_2, c_part, connect_list, img_label, c_label, best_connect_label_2, orientation, least_num)
-		else:
-			print("pre_merge_label = ", pre_merge_label)
-			print("best part is None :(")
+		# else:
+		# 	print("pre_merge_label = ", pre_merge_label)
+		# 	print("best part is None :(")
 
 def merge_parts(cut_points, parts, connect_list, img_label, orientation, least_num = 10):
 	aver_orientation = get_aver_orientation(parts, orientation)
@@ -527,7 +542,7 @@ def find_cut_point(img, orientation, threshold=45):
 	new_cut_points = remove_all_cut_points_around(img, cut_point_img, new_cut_points)
 	new_cut_points = remove_overlap(img, cut_point_img, new_cut_points)
 
-	parts = devide_parts(img, cut_point_img, new_cut_points, orientation)
+	new_cut_points, parts = devide_parts(img, cut_point_img, new_cut_points, orientation)
 
 
 	img_label = to_label(img, parts)
@@ -537,6 +552,7 @@ def find_cut_point(img, orientation, threshold=45):
 	connect_list, parts = connect_nearby_parts(new_cut_points, parts, img_label)
 	new_cut_points, parts = merge_parts_with_similar_orientation(cut_point_img, connect_list, img_label, new_cut_points, parts, orientation)
 
+	new_cut_points, parts = remove_empty_parts(parts)
 	parts.sort(key=len, reverse=True)
 	for i in range(len(parts)):
 		new_cut_points[i] = parts[i][0]
@@ -556,4 +572,4 @@ def find_cut_point(img, orientation, threshold=45):
 	# for i in range(len(connect_list)):
 	# 	print(i+1, connect_list[i])
 
-	return new_cut_points, parts, connect_list
+	return new_cut_points, parts, connect_list, aver_orientation
