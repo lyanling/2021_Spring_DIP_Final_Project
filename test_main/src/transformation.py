@@ -131,8 +131,6 @@ def transform(img, parts, connect_list, aver_orientation):
         trans_img = part_img[trans_pos]
 
         # interp may be slow :( (
-        
-
 
         # for i in range(h):
         #     for j in range(w):
