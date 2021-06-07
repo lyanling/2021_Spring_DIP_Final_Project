@@ -59,7 +59,7 @@ def getPartFromImg(part_img):
 def label_to_parts(label):
     parts = []
     for part_id in range(label.max(), 0, -1):
-        part = {tuple(coords) for coords in np.argwhere(arr == part_id)}
+        part = {tuple(coords) for coords in np.argwhere(label == part_id)}
         parts.append(part)
     return parts
 
