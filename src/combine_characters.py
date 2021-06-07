@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 from orientaion_comparison import has_similar_orientation
+import orientation as orien
 
 def find_combine_point(img, ori, side, count):
     pos_x, pos_y = np.where(img == 0)
@@ -155,5 +156,6 @@ def combine_char(img_left, img_right, ori_left, ori_right, floor_left, floor_rig
                 matches.append((pos_left, pos_right, ori_left, ori_right, floor_left, floor_right))
             best_match, dist = find_best_match(matches, expected_dist)
             img_combined, floor_combined = draw_line(img_left, img_right, best_match, dist, pattern_list)
-    return img_combined, floor_combined
+    orientation = orien.get_orientation(img_combined)
+    return img_combined, floor_combined, orientation
 
