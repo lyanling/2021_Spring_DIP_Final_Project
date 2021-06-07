@@ -154,7 +154,7 @@ def same_dir(orient_1, orient_2):
 		return True
 	return False
 
-def find_next_pixel_2(parts, current_part, img_label, cut_point_img, cut_point, current_p, orientation, current_label, p=1, threshold=30):
+def find_next_pixel_2(parts, current_part, img_label, cut_point_img, cut_point, current_p, orientation, current_label, p=1, threshold=20):
 	h, w = img_label.shape
 	r, c = current_p
 	left_r, right_r = max(0, r-p), min(h-1, r+p)
@@ -252,6 +252,7 @@ def get_label_connect(connect_list, c_label):
 
 def merge_small_best(aver_orientation, cut_points, new_cut_points, cut_point, parts, best_part, c_part, connect_list, img_label, c_label, best_connect_label, orientation, least_num):
 	connect_labels = get_label_connect(connect_list, c_label)
+	# print("merge ", c_label, " to ", best_connect_label)
 	to_merge_2(best_part, c_part)
 	aver_orientation[best_connect_label-1] = count_orientation(best_part, orientation)
 	new_cut_points.remove(cut_point)
@@ -527,6 +528,8 @@ def find_cut_point(img, orientation, threshold=45):
 	new_cut_points = remove_overlap(img, cut_point_img, new_cut_points)
 
 	parts = devide_parts(img, cut_point_img, new_cut_points, orientation)
+
+
 	img_label = to_label(img, parts)
 	connect_list, parts = connect_nearby_parts(new_cut_points, parts, img_label)
 	new_cut_points, parts = merge_parts(new_cut_points, parts, connect_list, img_label, orientation)
@@ -535,9 +538,12 @@ def find_cut_point(img, orientation, threshold=45):
 	new_cut_points, parts = merge_parts_with_similar_orientation(cut_point_img, connect_list, img_label, new_cut_points, parts, orientation)
 
 	parts.sort(key=len, reverse=True)
+	for i in range(len(parts)):
+		new_cut_points[i] = parts[i][0]
 
 	aver_orientation = get_aver_orientation(parts, orientation)
-	# print(aver_orientation)
+	# for i in range(len(aver_orientation)):
+	# 	print(i+1, aver_orientation[i])
 	img_label = to_label(img, parts)
 	connect_list, parts = connect_nearby_parts(new_cut_points, parts, img_label)
 	for i in range(len(connect_list)):
@@ -547,6 +553,7 @@ def find_cut_point(img, orientation, threshold=45):
 			parts[i].append(point)
 			# print("part ", i+1, ": append ", point, " from ", label)
 			connect_list[label-1][i+1] = point
-	# print(connect_list)
+	# for i in range(len(connect_list)):
+	# 	print(i+1, connect_list[i])
 
 	return new_cut_points, parts, connect_list
