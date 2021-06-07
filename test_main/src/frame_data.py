@@ -64,7 +64,7 @@ def get_frame_data(frame_path, thin_path, out_path):
         save_cut_points(thin_img, i, cut_points, out_path)
         label = save_parts(thin_img, i, parts, out_path)
         full_label = save_classify(frame, i, label, out_path)
-        frame_data = [full_label, connect_list, avg_ori]
+        frame_data = (full_label, connect_list, avg_ori)
         with open(f'{data_out_path}/{i}.pickle', 'wb') as fout:
             pickle.dump(frame_data, fout)
     return

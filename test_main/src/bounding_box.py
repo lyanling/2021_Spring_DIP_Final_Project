@@ -37,3 +37,9 @@ def get_bottom_line(file_dir):
     with open(file_dir+'/bottom_line.txt', 'r') as f:
         bottom_line = [int(l.rstrip()) for l in f.readlines()]
     return bottom_line
+
+def get_combined_bottom_line(img, idx, file_dir):
+    bottom_line = get_bottom_line(file_dir)
+    old = cv.imread(file_dir+'/'+str(idx)+'.png', cv.IMREAD_GRAYSCALE)
+    new_bottom_line = int(bottom_line[idx]+(img.shape[0]/2-old.shape[0]/2))
+    return new_bottom_line

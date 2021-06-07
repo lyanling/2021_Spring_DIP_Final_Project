@@ -1,61 +1,155 @@
-from types import new_class
+# from types import new_class
 import numpy as np
 import math
 import random
+from modules import geo_modify as gm
+from numpy.linalg import inv
+# import pickle
 
-def rotate(cut_points, part, theta):
-    part = np.array(list(part))
-    part = np.transpose(part)
-    new_part = np.zeros(part.shape, np.int)
-    c = [int((part[0].max()+part[0].min())/2), int((part[1].max()+part[1].min())/2)]
-    cos = math.cos(theta/180*math.pi)
-    sin = math.sin(theta/180*math.pi)
+def adjust_connect_list(connect_list, label, shift_value):
+    connect_labels = list(connect_list[label-1])
+    for connect_label in connect_labels:
+        r = connect_list[connect_label-1][label][0] + shift_value[0]
+        c = connect_list[connect_label-1][label][1] + shift_value[1]
+        connect_list[connect_label-1][label] = (r, c)
 
-    new_part[0] = ((part[0]-c[0])*cos - (part[1]-c[1])*sin + c[0]).astype(int)
-    new_part[1] = ((part[0]-c[0])*sin + (part[1]-c[1])*cos + c[1]).astype(int)
+def shift_part(parts, label, shift_value):
+    point_num = len(parts[label-1])
+    for i in range(point_num):
+        point = parts[label-1][i]
+        r = point[0] + shift_value[0]
+        c = point[1] + shift_value[1]
+        parts[label-1][i] = (r, c)
 
-    new_part = np.transpose(new_part)
-    new_set = set()
-    for i in range(new_part.shape[0]):
-        new_set.add(tuple(new_part[i]))
-    new_cut_points = set()
-    for cp in cut_points:
-        new_cut_points.add((int((cp[0]-c[0])*cos-(cp[1]-c[1])*sin+c[0]), int((cp[0]-c[0])*sin+(cp[1]-c[1])*cos+c[1])))
-    new_cut_points = list(new_cut_points)
-    return new_cut_points, new_set
 
-def scale(cut_points, part, s1, s2):
-    part = np.array(list(part))
-    new_part = np.array(part, np.int)
-    new_part[:,0] = (part[:,0]-part[:,0].min())*s1+part[:,0].min()
-    new_part[:,1] = (part[:,1]-part[:,1].min())*s2+part[:,1].min()
-    new_set = set()
-    for i in range(new_part.shape[0]):
-        new_set.add(tuple(new_part[i]))
-    new_cut_points = set()
-    for cp in cut_points:
-        new_cut_points.add((int(cp[0]*s1), int(cp[1]*s2)))
-    new_cut_points = list(new_cut_points)
-    return new_cut_points, new_set
+def adjust_connect_list_2(h, w, connect_list, label, M):
+    # get the new position of connecting point, and adjust the connect_list
+    # connect_list: [{part1's connection}, {part2's connection}, {part3's connection}]
+        # part1's cpnnection: {2: point A, 3: point B}  -> connect to part2's point A, and part3's point B
+    connect_labels = list(connect_list[label-1])
+    for connect_label in connect_labels:
+        point = connect_list[connect_label-1][label]
+        (x, y) = gm.to_cart(point[1], point[0], h)
+        in_vec = np.array([x, y, 1])
+        u, v, z = np.dot(M, in_vec)
+        new_point = gm.to_img_coord(u, v, h)
+        c_i = max(min(h-1, round(new_point[0])), 0)
+        c_j = max(min(w-1, round(new_point[1])), 0)
+        connect_list[connect_label-1][label] = (c_i, c_j)
 
-def transform(cut_points_list, parts):
+def getPartImg(h, w, part, extend):
+    part_img = np.zeros([h, w])
+    part_img.fill(255)
+    part_pos = np.array(part).T + extend
+    part_img[tuple([part_pos[0], part_pos[1]])] = 0
+    # for point in part:
+    #     part_img[(point[0] + extend, point[1] + extend)] = 0
+    return part_img
+
+def getPartFromImg(part_img):
+    part = []
+    h, w  = part_img.shape
+    for i in range(h):
+        for j in range(w):
+            point = (i, j)
+            if (part_img[point] == 0):
+                part.append(point)
+    return part
+
+def label_to_parts(label):
+    parts = []
+    for part_id in range(label.max(), 0, -1):
+        part = {tuple(coords) for coords in np.argwhere(arr == part_id)}
+        parts.append(part)
+    return parts
+
+def transform(img, parts, connect_list, aver_orientation):
+    # parts = label_to_parts(label)
+    h, w = img.shape
+    extend = 10
+    h += extend*2
+    w += extend*2
+
+    new_img = np.zeros([h, w])
+    new_img.fill(255)
+    new_img[extend:h-extend, extend:w-extend] = img
+
+    for i in range(len(parts)):
+        shift_part(parts, i+1, (extend, extend))
+        adjust_connect_list(connect_list, i+1, (extend, extend))
+
     trans_parts = []
-    trans_cut_points = []
     theta_range = [-10, 10]
-    scale_range = [0.8, 1.2]
-    for part in parts:
-        cut_points = []
-        for cp in cut_points_list:
-            if tuple(cp) in part:
-                cut_points.append(cp)
-        theta = random.uniform(theta_range[0], theta_range[1])
-        scale1 = random.uniform(scale_range[0], scale_range[1])
-        scale2 = random.uniform(scale_range[0], scale_range[1])
-        # theta, scale1, scale2 = 0, 2, 1
-        # print(theta, scale1, scale2)
-        new_cut_points, new_part = rotate(cut_points, part, theta)
-        new_cut_points, new_part = scale(new_cut_points, new_part, scale1, scale2)
+    scale_range = [0.9, 1.1]
+
+    for n in range(len(parts)):
+        part = parts[n]
+        part_img = getPartImg(h, w, part, extend)   # convert the part into an image
+        center = min(part)  # center at the point with smallest r
+        cart_center = gm.to_cart(center[1], center[0], h)   # to cartesian coordinate
+
+        # translation
+        T = np.array([[1, 0, -cart_center[0]], [0, 1, -cart_center[1]], [0, 0, 1]])
+        TB = np.array([[1, 0, cart_center[0]], [0, 1, cart_center[1]], [0, 0, 1]])  # translate back
+
+        # scaling
+        scale_mag = random.uniform(scale_range[0], scale_range[1])
+        S = np.array([[scale_mag, 0, 0], [0, scale_mag, 0], [0, 0, 1]])
+
+        # rotation
+        dt = random.uniform(theta_range[0], theta_range[1]) / 360 * (math.pi)
+        R = np.array([[math.cos(dt), -math.sin(dt), 0], [math.sin(dt), math.cos(dt), 0], [0, 0, 1]])
+        aver_orientation[n] += dt
+
+        # transform matrix
+        M = np.matmul(S, T)
+        M = np.matmul(R, M)
+        M = np.matmul(TB, M)
+        M_inv = inv(M)
+
+        # backward transformation
+        trans_img = np.zeros_like(part_img)
+        trans_img.fill(255)
+        trans_pos = np.meshgrid(range(h), range(w), indexing='ij').astype(int)
+        cart_x = trans_pos[1]
+        cart_y = h-1-trans_pos[0]
+        cart_x -= w//2
+        cart_y -= h//2
+        trans_cart = np.r_[cart_x, cart_y, np.ones((1, trans_pos[0].size))]
+        trans_cart = np.matmul(M_inv, trans_cart)
+        trans_cart[0] += w//2
+        trans_cart[1] += h//2
+        trans_pos[0] = h-1-trans_cart[1]
+        trans_pos[1] = trans_cart[0]
+        trans_pos[0][trans_pos[0] < 0] = 0
+        trans_pos[1][trans_pos[1] < 0] = 0
+        trans_pos[0][trans_pos[0] > h-1] = h-1
+        trans_pos[1][trans_pos[1] > w-1] = w-1
+
+        trans_pos[0] = np.round(trans_pos[0]).astype(int)
+        trans_pos[1] = np.round(trans_pos[1]).astype(int)
+        trans_img = part_img[trans_pos]
+
+        # interp may be slow :( (
         
+
+
+        # for i in range(h):
+        #     for j in range(w):
+        #         (x, y) = gm.to_cart(j, i, h)    # to cartesian coordinate
+        #         in_vec = np.array([x, y, 1])    # input vector
+        #         u, v, z = np.dot(M_inv, in_vec)
+        #         c_point = gm.to_img_coord(u, v, h)  # to img coordinate
+        #         # trans_img[i, j] = gm.bilinear_interpolation(part_img, c_point)    # bilinear interpolation is not applicable in this case
+        #         c_i = max(min(h-1, round(c_point[0])), 0)   # find the nearest integer
+        #         c_j = max(min(w-1, round(c_point[1])), 0)
+        #         trans_img[i, j] = part_img[c_i, c_j]
+
+        # adjust connect point pair
+        adjust_connect_list_2(h, w, connect_list, n+1, M)
+
+        # get new part
+        new_part = getPartFromImg(trans_img)
         trans_parts.append(new_part)
-        trans_cut_points.append(new_cut_points)
-    return new_cut_points, new_part
+    
+    return new_img, trans_parts, connect_list, aver_orientation

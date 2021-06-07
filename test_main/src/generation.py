@@ -32,29 +32,28 @@ def new_line(page_infos):
         new_page(page_infos)
     return
 
-def load_infos(path):
-    labels = []
+def load_infos(path, code):
+    with open(f'{path}/data/{code}.pickle', 'rb') as fin:
+        data = pickle.load(fin)
+    # full_label, connect_list, avg_ori 
+    return data
 
-    for i in range(33, 127):
-        with open(f'{path}/data/{i}.pickle', 'rb') as fin:
-            labels.append(pickle.load(fin))
-    return labels
-
-def generate_word(fin_path, input, tracking, page, labels, connect_lists, page_infos):
+def generate_word(fin_path, input, tracking, page, connect_lists, page_infos):
     combined = None
     combined_floor = None
     combined_ori = None
     for char in input:
         code = ord(char)
-        label = labels[code]
+        label, connect_list, avg_ori  = load_infos(fin_path, code)
         connect_list = connect_lists[code-33]
         img = cv.imread(f'{fin_path}/{code}.png', cv.IMREAD_GRAYSCALE)
         #transform
         new_img, trans_parts, connect_list = tf.transform(img, label, connect_list)
         #combine parts, out: combined_char
-        combine_img, combine_ori = cp.combine_parts(new_img, trans_parts, connect_list)
+        combine_img, combine_ori = cp.combine_parts(new_img, trans_parts, connect_list, avg_ori)
         # new orientation and bounding box
-        bound, bottom_line = box.get_bounding_box(combine_img)
+        bound, _ = box.get_bounding_box(combine_img)
+        bottom_line = box.get_combined_bottom_line(combine_img, code, fin_path)
         h1, h2, w1, w2 = bound
         bounded_combine_img = combine_img[h1:h2+1, w1:w2+1]
         combine_ori = combine_ori[h1:h2+1, w1:w2+1]
@@ -68,10 +67,10 @@ def generate_word(fin_path, input, tracking, page, labels, connect_lists, page_i
     page[paste_start:paste_start + combined.shape[0], page_infos['word offset']:page_infos['word offset']+combined.shape[1]] = combined
     return
 
-def generate_sentence(fin_path, input, labels, page_infos):
+def generate_sentence(fin_path, input, page_infos):
     words = input.split(' ')
     for word in words:
-        generate_word(fin_path, word, labels, page_infos)
+        generate_word(fin_path, word, page_infos)
         # put space
         page_infos['word offset'] += page_infos['word-spacing']
         if page_infos['word offset'] > page_infos['page'].shape[1] - page_infos['word end']:
@@ -96,11 +95,10 @@ def generate_text(fin_path, text_path, leading, word_spacing, tracking, header, 
     page_infos['order'] = 0
     page_infos['page'] = np.zeros(size, dtype=np.uint8)
 
-    labels = load_infos(fin_path)
     with open(fin_path, 'r') as fin:
         rows = fin.readlines()
         for row in rows:
-            generate_sentence(fin_path, row, labels, page_infos)
+            generate_sentence(fin_path, row, page_infos)
             # new line new page
             new_line(page_infos)
     save_page(page_infos)

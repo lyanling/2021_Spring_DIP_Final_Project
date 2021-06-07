@@ -137,7 +137,7 @@ def draw_line(img_left, img_right, match, space, pattern_list):
     return img_combined, floor_above
 
 def combine_char(img_left, img_right, ori_left, ori_right, floor_left, floor_right, expected_dist, count=5):
-    if img_left == None:
+    if img_left is None:
         return img_right, floor_right
     cpoint_pos_left, cpoint_ori_left = find_combine_point(img_left, ori_left, 'left', count)
     cpoint_pos_right, cpoint_ori_right = find_combine_point(img_right, ori_right, 'right', count)
