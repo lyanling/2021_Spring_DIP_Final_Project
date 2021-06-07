@@ -2,7 +2,7 @@
 import numpy as np
 import math
 import random
-from . import geo_modify as gm
+from modules import geo_modify as gm
 from numpy.linalg import inv
 import pickle
 

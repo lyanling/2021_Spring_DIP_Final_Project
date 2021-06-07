@@ -7,7 +7,6 @@ from modules import find_cut_point as fcp
 import orientation as orien
 import bounding_box as bb
 from pathlib import Path
-import devide_parts as dp
 import transformation as tf
 from modules import combine_parts as cp
 

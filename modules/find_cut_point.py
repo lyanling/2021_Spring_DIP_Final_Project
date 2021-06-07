@@ -179,6 +179,10 @@ def find_next_pixel_2(parts, current_part, img_label, cut_point_img, cut_point, 
 				diff = get_orient_diff(current_orient, orientation[point])
 				if not (diff < old_diff and same_dir(current_orient, orientation[point])):	# change a point to a more proper part
 					continue
+				# print("current_label: ", current_label)
+				# print("old_label: ", img_label[point])
+				if (point in parts[img_label[point]-1]):
+					parts[img_label[point]-1].remove(point)
 			points.append(point)
 	return points
 
@@ -209,6 +213,10 @@ def devide_parts(img, cut_point_img, cut_points, orientation):
 			candidates += next_pixel_pos
 		parts.append(part)
 		count += 1
+	if (len(parts) == 0):
+		r, c = np.where(img == 0)
+		part = list(zip(r, c))
+		parts.append(part)
 	return parts
 
 
@@ -465,7 +473,7 @@ def merge_pwso(orientation, aver_orientation, cut_points, new_cut_points, connec
 		parts.remove(best_part)
 		merge_pwso(orientation, aver_orientation, cut_points, new_cut_points, connect_list, parts, c_part, best_connect_label, threshold, aver_orient_label)
 
-def merge_parts_with_similar_orientation(cut_point_img, connect_list, img_label, cut_points, parts, orientation, threshold=25):
+def merge_parts_with_similar_orientation(cut_point_img, connect_list, img_label, cut_points, parts, orientation, threshold=30):
 	aver_orientation = get_aver_orientation(parts, orientation)
 	# print(aver_orientation)
 	new_cut_points = cut_points.copy()

@@ -14,7 +14,7 @@ def get_bounding_box(file_dir, start_idx=33, end_idx=126):
     
     for idx in range(start_idx, end_idx+1):  # ASCII:33~126
         word = cv2.imread(file_dir+'/'+str(idx)+'.png', cv2.IMREAD_GRAYSCALE)
-        # thin_word = inv(thin.thinning(inv(word)))
+        # thin_word = thin.thinning(word)
         thin_word = word
         # boundary
         word_locs = np.argwhere(thin_word==0)
