@@ -4,6 +4,7 @@ import math
 import random
 from modules import geo_modify as gm
 from numpy.linalg import inv
+import cv2 as cv
 # import pickle
 
 def adjust_connect_list(connect_list, label, shift_value):
@@ -110,7 +111,9 @@ def transform(img, parts, connect_list, aver_orientation):
         # backward transformation
         trans_img = np.zeros_like(part_img)
         trans_img.fill(255)
-        trans_pos = np.meshgrid(range(h), range(w), indexing='ij').astype(int)
+        trans_pos = np.meshgrid(range(h), range(w), indexing='ij')
+        trans_pos[0] = trans_pos[0].flatten().reshape((1, -1))
+        trans_pos[1] = trans_pos[1].flatten().reshape((1, -1))
         cart_x = trans_pos[1]
         cart_y = h-1-trans_pos[0]
         cart_x -= w//2
@@ -128,13 +131,13 @@ def transform(img, parts, connect_list, aver_orientation):
 
         trans_pos[0] = np.round(trans_pos[0]).astype(int)
         trans_pos[1] = np.round(trans_pos[1]).astype(int)
-        trans_img = part_img[trans_pos]
-
+        print(trans_pos)
+        trans_img[:, :] = part_img[trans_pos].reshape((h, w))
         # interp may be slow :( (
-        
 
 
         # for i in range(h):
+
         #     for j in range(w):
         #         (x, y) = gm.to_cart(j, i, h)    # to cartesian coordinate
         #         in_vec = np.array([x, y, 1])    # input vector
@@ -149,7 +152,9 @@ def transform(img, parts, connect_list, aver_orientation):
         adjust_connect_list_2(h, w, connect_list, n+1, M)
 
         # get new part
-        new_part = getPartFromImg(trans_img)
+        # new_part = getPartFromImg(trans_img)
+        new_part = np.array(np.where(trans_img == 0)).T
+        
         trans_parts.append(new_part)
     
     return new_img, trans_parts, connect_list, aver_orientation
