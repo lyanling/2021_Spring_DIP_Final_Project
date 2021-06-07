@@ -11,14 +11,14 @@ def get_bounding_box(word):
     # boundary
     word_locs = np.argwhere(word==0)
     if word_locs.size == 0:
-        return word, None
+        return None, None
     h1, w1 = word_locs.min(axis = 0)
     h2, w2 = word_locs.max(axis = 0)
     # bounding box
-    word_bobox = word[h1:h2+1, w1:w2+1]
+    # word_bobox = word[h1:h2+1, w1:w2+1]
     # bottom line
     bottom_line = int(word.shape[0]*(2/3)-h1)
-    return word_bobox, bottom_line
+    return (h1, h2, w1, w2), bottom_line
 
 def get_thinning_box(in_path, out_path, start_idx=33, end_idx=38):
     thin_dir = Path(f'{out_path}/thinning')

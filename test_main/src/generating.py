@@ -17,4 +17,4 @@ args = parser.parse_args()
 gen_path = Path(f'{args.data_path}/generate')
 gen_path.mkdir(parents=True, exist_ok=True)
 
-gen.generate_text(str(gen_path), args.leading, args.word_spacing, args.tracking)
+gen.generate_text(str(gen_path), args.data_path ,args.leading, args.word_spacing, args.tracking, )
