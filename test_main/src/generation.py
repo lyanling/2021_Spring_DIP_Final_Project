@@ -47,7 +47,8 @@ def generate_word(data_path, input, page_infos):
         label, connect_list, avg_ori  = load_infos(data_path, code)
         img = cv.imread(f'{data_path}/frames/{code}.png', cv.IMREAD_GRAYSCALE)
         #transform
-        new_img, trans_parts, connect_list = tf.transform(img, label, connect_list, avg_ori)
+        parts = tf.label_to_parts(label)
+        new_img, trans_parts, connect_list, avg_ori = tf.transform(img, parts, connect_list, avg_ori)
         #combine parts, out: combined_char
         combine_img, combine_ori = cp.combine_parts(new_img, trans_parts, connect_list, avg_ori)
         # new orientation and bounding box

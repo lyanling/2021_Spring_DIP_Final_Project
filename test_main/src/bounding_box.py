@@ -35,11 +35,14 @@ def get_thinning_box(in_path, out_path, start_idx=33, end_idx=38):
 def get_bottom_line(file_dir):
     bottom_line = []
     with open(file_dir+'/bottom_line.txt', 'r') as f:
-        bottom_line = [int(l.rstrip()) for l in f.readlines()]
-    return bottom_line
+        bottom_line = [l.split() for l in f.readlines()]
+    d = dict()
+    for bm in bottom_line:
+        d[int(bm[0])] = int(bm[1])
+    return d
 
 def get_combined_bottom_line(img, idx, file_dir):
     bottom_line = get_bottom_line(file_dir)
-    old = cv.imread(file_dir+'/'+str(idx)+'.png', cv.IMREAD_GRAYSCALE)
+    old = cv.imread(file_dir+'/frames/'+str(idx)+'.png', cv.IMREAD_GRAYSCALE)
     new_bottom_line = int(bottom_line[idx]+(img.shape[0]/2-old.shape[0]/2))
     return new_bottom_line

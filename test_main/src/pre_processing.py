@@ -110,7 +110,7 @@ def extractFrames(img, label, count, img_bool, start_ascii_code, out_path):
             h1, h2, w1, w2 = bound
             bounding_frame = frame[h1:h2+1, w1:w2+1]
             bounding_thin_frame = thin_frame[h1:h2+1, w1:w2+1]
-            bottom_line_list.append(bottom_line)
+            bottom_line_list.append([start_ascii_code + i, bottom_line])
             cv.imwrite(f'{out_path}/frames/{start_ascii_code + i}.png', bounding_frame)
             cv.imwrite(f'{out_path}/thinning/{start_ascii_code + i}.png', bounding_thin_frame)
     return bottom_line_list
@@ -159,5 +159,5 @@ def pre_processing(in_path, out_path, extension):
     for i in range(1):
         bottom_line += pre_processing_on_img(thresholded_imgs[i], start_ascii_code, out_path)
     with open(out_path + "/bottom_line.txt", "w") as f:
-        f.writelines("%s\n" % l for l in bottom_line)
+        f.writelines(str(l[0])+' '+str(l[1])+'\n' for l in bottom_line)   
     return frame_path

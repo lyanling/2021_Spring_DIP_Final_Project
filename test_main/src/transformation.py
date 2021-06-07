@@ -17,6 +17,8 @@ def shift_part(parts, label, shift_value):
     point_num = len(parts[label-1])
     for i in range(point_num):
         point = parts[label-1][i]
+        # print(parts[label-1])
+        # print(point, shift_value)
         r = point[0] + shift_value[0]
         c = point[1] + shift_value[1]
         parts[label-1][i] = (r, c)
@@ -59,12 +61,13 @@ def getPartFromImg(part_img):
 def label_to_parts(label):
     parts = []
     for part_id in range(label.max(), 0, -1):
-        part = {tuple(coords) for coords in np.argwhere(arr == part_id)}
+        part = [tuple(coords) for coords in np.argwhere(label == part_id)]
         parts.append(part)
     return parts
 
 def transform(img, parts, connect_list, aver_orientation):
     # parts = label_to_parts(label)
+    
     h, w = img.shape
     extend = 10
     h += extend*2
@@ -110,7 +113,9 @@ def transform(img, parts, connect_list, aver_orientation):
         # backward transformation
         trans_img = np.zeros_like(part_img)
         trans_img.fill(255)
-        trans_pos = np.meshgrid(range(h), range(w), indexing='ij').astype(int)
+        trans_pos = np.meshgrid(range(h), range(w), indexing='ij')
+        trans_pos[0] = trans_pos[0].reshape((1, -1))
+        trans_pos[1] = trans_pos[1].reshape((1, -1))
         cart_x = trans_pos[1]
         cart_y = h-1-trans_pos[0]
         cart_x -= w//2
@@ -128,7 +133,7 @@ def transform(img, parts, connect_list, aver_orientation):
 
         trans_pos[0] = np.round(trans_pos[0]).astype(int)
         trans_pos[1] = np.round(trans_pos[1]).astype(int)
-        trans_img = part_img[trans_pos]
+        trans_img[:, :] = part_img[trans_pos].reshape((h, w))
 
         # interp may be slow :( (
 
@@ -147,7 +152,8 @@ def transform(img, parts, connect_list, aver_orientation):
         adjust_connect_list_2(h, w, connect_list, n+1, M)
 
         # get new part
-        new_part = getPartFromImg(trans_img)
+        # new_part = getPartFromImg(trans_img)
+        new_part = np.array(np.where(trans_img == 0)).T
         trans_parts.append(new_part)
     
     return new_img, trans_parts, connect_list, aver_orientation
