@@ -511,6 +511,21 @@ def adjust_orientation(img, orientation):
                 orientation[i, j] += 180
     orientation[img == 255] = -1
 
+def add_rest_point(new_cut_points, parts, img):
+	all_part = []
+	for part in parts:
+		all_part += part
+	r, c = np.array(all_part).T
+	current_img = (np.zeros_like(img)).fill(255)
+	current_img[r, c] = 0
+	or_img = current_img | img
+	rest_img = current_img ^ or_img
+	
+	r, c = np.array(rest_img == 255)
+	rest_part = list(zip(r, c))
+	new_cut_points.append(rest_part[0])
+	parts.append(rest_part)
+
 def find_cut_point(img, orientation, threshold=45):
 	cut_points = []
 	h, w = img.shape
@@ -556,6 +571,8 @@ def find_cut_point(img, orientation, threshold=45):
 	parts.sort(key=len, reverse=True)
 	for i in range(len(parts)):
 		new_cut_points[i] = parts[i][0]
+
+	add_rest_point(new_cut_points, parts, img)
 
 	aver_orientation = get_aver_orientation(parts, orientation)
 	# for i in range(len(aver_orientation)):

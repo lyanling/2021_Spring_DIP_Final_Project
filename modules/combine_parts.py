@@ -54,6 +54,7 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 
 	# method 1
 	ori_img = np.zeros_like(out_img)
+	ori_img.fill(-1)
 	n = 0
 	for part in bold_parts:
 		r, c = np.array(part).T
