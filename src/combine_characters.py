@@ -50,6 +50,8 @@ def find_best_match(matches, expected_dist):
     return best_match, dist[sorted_idx[0]]
 
 def getSlope(ori):  # dr, dc
+    if (ori > 90):
+        ori -= 180
     if (ori <= -56 and ori > 78):    # -67
         return 0, (3, 2)
     elif (ori <= -34):  # -45
