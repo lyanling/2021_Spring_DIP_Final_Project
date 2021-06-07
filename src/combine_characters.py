@@ -1,6 +1,6 @@
 import cv2 as cv
 import numpy as np
-from orientaion_comparison import has_similar_orientation
+from orientaion_comparison import has_similar_orientation_2
 import orientation as orien
 
 def find_combine_point(img, ori, side, count):
@@ -20,7 +20,7 @@ def find_combine_point(img, ori, side, count):
 
 def match_points(pos_left, pos_right, ori_left, ori_right, floor_left, floor_right):
     # straight line
-    if not has_similar_orientation(ori_left, ori_right, threshold=20):
+    if not has_similar_orientation_2(ori_left, ori_right, threshold=20):
         return False
     height_left = pos_left[0] - floor_left
     height_right = pos_right[0] - floor_right
