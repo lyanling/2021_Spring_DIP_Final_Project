@@ -23,11 +23,8 @@ frame_path = f'{out_path}/frames'
 thin_path = f'{out_path}/thinning'
 
 
-# get frames
+# get frames and thinning
 frame_path = pre.pre_processing(in_path, out_path, args.extension)
-
-# thinning and bounding box 
-thin_path = box.get_thinning_box(frame_path, out_path)
 
 # save check image of orientation, cut points, and parts
 # save frame data (cut points position, part labels)

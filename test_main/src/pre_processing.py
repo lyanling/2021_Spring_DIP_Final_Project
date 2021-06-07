@@ -97,10 +97,22 @@ def extractFrames(img, label, count, img_bool, start_ascii_code, out_path):
         frame[I_frame] = img[I]
         frame_bool[I_frame] = img_bool[I]
         frame, frame_bool = cleanBoundary(frame, frame_bool)
-        bounding_frame, bottom_line = box.get_bounding_box(frame)
-        bottom_line_list.append(bottom_line)
-        if not (bounding_frame == 255).all():
-            cv.imwrite(f'{out_path}/{start_ascii_code + i}.png', bounding_frame)
+        # closing
+        frame = np.where(frame==0, 255, 0).astype(np.uint8)
+        frame = cv.morphologyEx(frame, cv.MORPH_CLOSE, np.ones((5, 5)))
+        # opening
+        frame = cv.morphologyEx(frame, cv.MORPH_OPEN, np.ones((3, 3)))
+        thin_frame = cv.ximgproc.thinning(frame)
+        frame = np.where(frame==0, 255, 0).astype(np.uint8)
+        thin_frame = np.where(thin_frame==0, 255, 0).astype(np.uint8)
+        bound, bottom_line = box.get_bounding_box(frame)
+        if bound is not None:
+            h1, h2, w1, w2 = bound
+            bounding_frame = frame[h1:h2+1, w1:w2+1]
+            bounding_thin_frame = thin_frame[h1:h2+1, w1:w2+1]
+            bottom_line_list.append(bottom_line)
+            cv.imwrite(f'{out_path}/frames/{start_ascii_code + i}.png', bounding_frame)
+            cv.imwrite(f'{out_path}/thinning/{start_ascii_code + i}.png', bounding_thin_frame)
     return bottom_line_list
 
 def pre_processing_on_img(imgs, start_ascii_code, out_path):
@@ -134,6 +146,8 @@ def pre_processing(in_path, out_path, extension):
     frame_path = Path(f"{out_path}/frames")
     frame_path.mkdir(parents=True, exist_ok=True)
     frame_path = str(frame_path)
+    thin_frame_path = Path(f"{out_path}/thinning")
+    thin_frame_path.mkdir(parents=True, exist_ok=True)
     thresholded_imgs = []
     for i in range(1):
         print(f'start processing image {i}...')
@@ -143,7 +157,7 @@ def pre_processing(in_path, out_path, extension):
         thresholded_imgs.append(comfirm_thresholding(img, threshold))
     bottom_line = []
     for i in range(1):
-        bottom_line += pre_processing_on_img(thresholded_imgs[i], start_ascii_code, frame_path)
+        bottom_line += pre_processing_on_img(thresholded_imgs[i], start_ascii_code, out_path)
     with open(frame_path + "/bottom_line.txt", "w") as f:
         f.writelines("%s\n" % l for l in bottom_line)
     return frame_path
