@@ -69,7 +69,7 @@ def transform(img, parts, connect_list, aver_orientation):
     # parts = label_to_parts(label)
     
     h, w = img.shape
-    extend = 20
+    extend = 50
     h += extend*2
     w += extend*2
 
@@ -126,6 +126,8 @@ def transform(img, parts, connect_list, aver_orientation):
         trans_cart[1] += h//2
         trans_pos[0] = h-1-trans_cart[1]
         trans_pos[1] = trans_cart[0]
+        trans_check_1 = np.array(trans_pos[0]).reshape((h, w))
+        trans_check_2 = np.array(trans_pos[1]).reshape((h, w))
         trans_pos[0][trans_pos[0] < 0] = 0
         trans_pos[1][trans_pos[1] < 0] = 0
         trans_pos[0][trans_pos[0] > h-1] = h-1
@@ -133,8 +135,13 @@ def transform(img, parts, connect_list, aver_orientation):
 
         trans_pos[0] = np.round(trans_pos[0]).astype(int)
         trans_pos[1] = np.round(trans_pos[1]).astype(int)
+
         trans_img[:, :] = part_img[trans_pos].reshape((h, w))
 
+        trans_img = np.where(trans_check_1 < 0, 255, trans_img)
+        trans_img = np.where(trans_check_1 > h-1, 255, trans_img)
+        trans_img = np.where(trans_check_2 < 0, 255, trans_img)
+        trans_img = np.where(trans_check_2 > w-1, 255, trans_img)
         # interp may be slow :( (
 
         # for i in range(h):

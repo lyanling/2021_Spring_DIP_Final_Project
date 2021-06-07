@@ -443,7 +443,8 @@ def count_orientation(part, orientation):
 			continue
 		orientation_sum += new_orient
 		point_num += 1
-	aver = orientation_sum / point_num
+	if (point_num > 0):
+		aver = orientation_sum / point_num
 	return aver
 
 def get_aver_orientation(parts, orientation):

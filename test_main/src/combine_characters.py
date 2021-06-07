@@ -121,6 +121,7 @@ def draw_line(img_left, img_right, match, space, pattern_list, floor_left, floor
 
     # combine two imgs
     img_combined = np.zeros((floor_above + floor_below, n_l + n_r + round(new_space)))
+    img_combined.fill(255)
     start_left = floor_above - floor_left   # the highest point's position of left_img
     start_right = floor_above - floor_right     # the highest point's position of right_img
     img_combined[start_left:start_left+m_l, :n_l] = img_left

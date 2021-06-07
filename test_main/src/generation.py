@@ -20,6 +20,7 @@ def save_page(page_infos):
 
 def new_page(page_infos, size = (3508, 2480)):
     page_infos['page'] = np.zeros(size, dtype=np.uint8)
+    page_infos['page'].fill(255)
     page_infos['line offset'] = page_infos['header']
     page_infos['word offset'] = page_infos['word start']
     page_infos['order'] += 1
@@ -27,6 +28,7 @@ def new_page(page_infos, size = (3508, 2480)):
 
 def new_line(page_infos):
     page_infos['line offset'] += page_infos['leading']
+    page_infos['word offset'] = page_infos['word start']
     if page_infos['line offset'] > page_infos['page'].shape[0] - page_infos['footer']:
         save_page(page_infos)
         new_page(page_infos)
@@ -44,6 +46,7 @@ def generate_word(data_path, input, page_infos):
     combined_ori = None
     for char in input:
         code = ord(char)
+        print(char)
         label, connect_list, avg_ori  = load_infos(data_path, code)
         img = cv.imread(f'{data_path}/frames/{code}.png', cv.IMREAD_GRAYSCALE)
         #transform
@@ -60,7 +63,7 @@ def generate_word(data_path, input, page_infos):
         #combine char (maybe it should tell us the orientation of left image)
         combined, combined_floor, combined_ori = cmbchar.combine_char(combined, bounded_combine_img, combined_ori, combine_ori, combined_floor, bottom_line, page_infos['tracking'])
     # paste the combined word to page
-    if page_infos['word offset'] + combined.shape[1] > page_infos['word end']:
+    if page_infos['word offset'] + combined.shape[1] > page_infos['page'].shape[1] - page_infos['word end']:
         new_line(page_infos)
     page = page_infos['page']
     # print(combined_floor)
@@ -68,6 +71,7 @@ def generate_word(data_path, input, page_infos):
     # print(paste_start)
     page[paste_start:paste_start + combined.shape[0], page_infos['word offset']:page_infos['word offset']+combined.shape[1]] = combined
     page_infos['page'] = page
+    page_infos['word offset'] += combined.shape[1]
     return
 
 def generate_sentence(data_path, input, page_infos):
@@ -97,10 +101,12 @@ def generate_text(data_path, text_path, leading, word_spacing, tracking, header,
     page_infos['word offset'] = 10
     page_infos['order'] = 0
     page_infos['page'] = np.zeros(size, dtype=np.uint8)
-
+    page_infos['page'].fill(255)
+    print(page_infos['page'])
     with open(text_path, 'r') as fin:
         rows = fin.readlines()
         for row in rows:
+            row = row.strip()
             generate_sentence(data_path, row, page_infos)
             # new line new page
             new_line(page_infos)

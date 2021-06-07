@@ -52,7 +52,7 @@ def save_classify(img, i, label, out_path):
 def get_frame_data(frame_path, thin_path, out_path):
     data_out_path = Path(f'{out_path}/data')
     data_out_path.mkdir(parents=True, exist_ok=True)
-    for i in range(33, 33+6):
+    for i in range(33, 127):
         print(f'start getting frame {i}\'s data')
         thin_img = cv.imread(f'{thin_path}/{i}.png', cv.IMREAD_GRAYSCALE)
         frame = cv.imread(f'{frame_path}/{i}.png', cv.IMREAD_GRAYSCALE)
