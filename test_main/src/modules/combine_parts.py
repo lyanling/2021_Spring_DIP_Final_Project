@@ -2,14 +2,6 @@ import numpy as np
 from . import geo_modify as gm
 
 
-def adjust_orientation(img, orientation):
-    h, w = img.shape
-    for i in range(h):
-        for j in range(w):
-            if (img[i, j] == 0) and (orientation[i, j] < 0):
-                orientation[i, j] += 180
-    orientation[img == 255] = -1
-
 def adjust_connect_list(connect_list, label, shift_value):
     connect_labels = list(connect_list[label-1])
     for connect_label in connect_labels:
@@ -25,6 +17,11 @@ def shift_part(parts, label, shift_value):
         c = point[1] + shift_value[1]
         parts[label-1][i] = (r, c)
 
+def adjust_connect_parts(bold_parts, connect_list, new_connect_labels, shift_value):
+	for label in new_connect_labels:
+		shift_part(bold_parts, label, shift_value)
+		adjust_connect_list(connect_list, label, shift_value)
+
 def combine_parts(img, bold_parts, connect_list, aver_orientation):
 	# parts: 
 	# connect_points: [[part1's connect_points_pairs], [], [], ...]
@@ -35,6 +32,9 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 	# orientation = get_orientation(img)
 	# adjust_orientation(img, orientation)
 	parts_num = len(bold_parts)
+	new_connect_list = []
+	for i in range(len(connect_list)):
+		new_connect_list.append([])
 
 	for i in range(len(connect_list)-1, -1, -1):
 		connect_labels = list(connect_list[i])
@@ -49,6 +49,9 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 			shift_part(bold_parts, c_label, shift_value)
 			adjust_connect_list(connect_list, c_label, shift_value)	# adjust the information of connecting points, 
 																		# since the position has changed
+			new_connect_labels = new_connect_list[c_label-1]
+			adjust_connect_parts(bold_parts, connect_list, new_connect_labels, shift_value)
+			new_connect_list[label-1].append(c_label)
 
 	min_h, min_w = 1000, 1000
 	max_h, max_w = -1000, -1000
