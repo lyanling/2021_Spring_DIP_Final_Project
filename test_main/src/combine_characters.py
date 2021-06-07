@@ -8,14 +8,16 @@ def find_combine_point(img, ori, side, count):
     pos_x, pos_y = np.where(img == 0)
     sorted_idx = np.argsort(pos_x)
     if side=='left':    # find the right-most point for left img
-        cpoint_pos = tuple(pos_x[sorted_idx[-count:]], pos_y[sorted_idx[-count:]])
+        cpoint_pos = tuple([pos_x[sorted_idx[-count:]], pos_y[sorted_idx[-count:]]])
         cpoint_ori = ori[cpoint_pos]
     elif side=='right':   # find the left-most point for right img 
-        cpoint_pos = tuple(pos_x[sorted_idx[:count]], pos_y[sorted_idx[:count]])
+        cpoint_pos = tuple([pos_x[sorted_idx[:count]], pos_y[sorted_idx[:count]]])
         cpoint_ori = ori[cpoint_pos]
     else:
         print('find_combine_point: argument "side" should be either "left" or "right"')
         return None, None
+    cpoint_pos = np.array(cpoint_pos).T
+    cpoint_ori = np.array(cpoint_ori).T
     return cpoint_pos, cpoint_ori
 
 
@@ -31,10 +33,12 @@ def match_points(pos_left, pos_right, ori_left, ori_right, floor_left, floor_rig
         return True
     return False
 
-def find_best_match(matches, expected_dist):
+def find_best_match(matches, expected_dist, floor_left, floor_right):
+    if len(matches) == 0:
+        return None
     dist = []
     for match in matches:
-        pos_left, pos_right, ori_left, ori_right, floor_left, floor_right = match
+        pos_left, pos_right, ori_left, ori_right = match
         height_left = pos_left[0] - floor_left
         height_right = pos_right[0] - floor_right
         if height_left == height_right:
@@ -48,7 +52,7 @@ def find_best_match(matches, expected_dist):
     diff = np.abs(dist - expected_dist)
     sorted_idx = np.argsort(diff)
     best_match = matches[sorted_idx[0]]
-    return best_match, dist[sorted_idx[0]]
+    return best_match#, dist[sorted_idx[0]]
 
 def getSlope(ori):  # dr, dc
     if (ori > 90):
@@ -96,32 +100,34 @@ def chooseAPattern(patterns):
     p = random.uniform(0, len(patterns))
     return patterns[p]
 
-def draw_line(img_left, img_right, match, space, pattern_list):
-    pos_left, pos_right, ori_left, ori_right, floor_left, floor_right = match
+def draw_line(img_left, img_right, match, space, pattern_list, floor_left, floor_right):
+    to_draw = False
+    dc = -1
+    if match is not None:
+        pos_left, pos_right, ori_left, ori_right = match
+        pattern_idx, slope = getSlope(ori_left)
+        d_pos = pos_right - pos_left
+        dc = ((d_pos[0] + slope[0] - 1) // slope[0]) * slope[1]
+        to_draw = True
+        new_space = dc - pos_right[1]
+
     m_l, n_l = img_left.shape
     m_r, n_r = img_right.shape
     floor_above = max(floor_left, floor_right, 0)
-    floor_below = max(m_l-floor_left - 1, m_r - floor_right - 1, 0)     # -1
-
-    # slope of line
-    pattern_idx, slope = getSlope(ori_left)
-    d_pos = pos_right - pos_left
-    dc = ((d_pos[0] + slope[0] - 1) // slope[0]) * slope[1]
-    to_draw = True
-    new_space = dc - pos_right[1]
+    floor_below = max(m_l-floor_left , m_r - floor_right , 0)     # -1
     if (dc <= 0):
         new_space = space
         to_draw = False
 
     # combine two imgs
-    img_combined = np.zeros((floor_above + floor_below, n_l + n_r + new_space))
+    img_combined = np.zeros((floor_above + floor_below, n_l + n_r + round(new_space)))
     start_left = floor_above - floor_left   # the highest point's position of left_img
     start_right = floor_above - floor_right     # the highest point's position of right_img
     img_combined[start_left:start_left+m_l, :n_l] = img_left
     img_combined[start_right:start_right+m_r, -n_r:] = img_right
     
     if (not to_draw):
-        return img_combined, floor_above
+        return img_combined, floor_above, start_right
 
     # draw
     # get line pattern
@@ -146,23 +152,22 @@ def draw_line(img_left, img_right, match, space, pattern_list):
     return img_combined, floor_above, start_right
 
 def combine_char(img_left, img_right, ori_left, ori_right, floor_left, floor_right, expected_dist, count=5):
-    if img_left == None:
-        return img_right, floor_right
+    if img_left is None:
+        return img_right, floor_right, ori_right
     cpoint_pos_left, cpoint_ori_left = find_combine_point(img_left, ori_left, 'left', count)
     cpoint_pos_right, cpoint_ori_right = find_combine_point(img_right, ori_right, 'right', count)
     matches = []
     pattern_list = get_patterns()
-
     for i in range(count):
         pos_left = cpoint_pos_left[i]
-        ori_left = cpoint_ori_left[i]
+        orient_left = cpoint_ori_left[i]
         for j in range(count):
             pos_right = cpoint_pos_right[j]
-            ori_right = cpoint_ori_right[j]
-            if match_points(pos_left, pos_right, ori_left, ori_right, floor_left, floor_right):
-                matches.append((pos_left, pos_right, ori_left, ori_right, floor_left, floor_right))
-            best_match, dist = find_best_match(matches, expected_dist)
-            img_combined, floor_combined = draw_line(img_left, img_right, best_match, dist, pattern_list)
-    
-    return img_combined, floor_combined
-
+            orient_right = cpoint_ori_right[j]
+            if match_points(pos_left, pos_right, orient_left, orient_right, floor_left, floor_right):
+                matches.append((pos_left, pos_right, orient_left, orient_right))
+            best_match = find_best_match(matches, expected_dist, floor_left, floor_right)
+            img_combined, floor_combined, start_right = draw_line(img_left, img_right, best_match, expected_dist, pattern_list, floor_left, floor_right)
+    next_orient = np.zeros(img_combined.shape)
+    next_orient[start_right:start_right+ori_right.shape[0], -ori_right.shape[1]:] = ori_right
+    return img_combined, floor_combined, next_orient

@@ -7,11 +7,11 @@ parser.add_argument('text_path', help="input text file")
 parser.add_argument('data_path', help="handwriting directory generate by \"dividing.py\"")
 
 # parser.add_argument('--out', dest="out_path", metavar="./MyHandWriting", default="./MyHandWriting",help="output directory")
-parser.add_argument('--l', dest="leading", type=int, default=0, help="leading")
-parser.add_argument('--w', dest="word_spacing", type=int, default=0, help="word-spacing")
-parser.add_argument('--t', dest="tracking", type=int, default=0, help="letter-spacing")
-parser.add_argument('--header', dest="header", type=int, default=30, help="page header")
-parser.add_argument('--footer', dest="footer", type=int, default=30, help="page footer")
+parser.add_argument('--l', dest="leading", type=int, default=300, help="leading")
+parser.add_argument('--w', dest="word_spacing", type=int, default=50, help="word-spacing")
+parser.add_argument('--t', dest="tracking", type=int, default=10, help="letter-spacing")
+parser.add_argument('--header', dest="header", type=int, default=300, help="page header")
+parser.add_argument('--footer', dest="footer", type=int, default=300, help="page footer")
 
 # letter size? color?
 

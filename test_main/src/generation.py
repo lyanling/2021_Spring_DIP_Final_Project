@@ -27,7 +27,7 @@ def new_page(page_infos, size = (3508, 2480)):
 
 def new_line(page_infos):
     page_infos['line offset'] += page_infos['leading']
-    if page_infos['line_offset'] > page_infos['page'].shape[0] - page_infos['footer']:
+    if page_infos['line offset'] > page_infos['page'].shape[0] - page_infos['footer']:
         save_page(page_infos)
         new_page(page_infos)
     return
@@ -58,13 +58,16 @@ def generate_word(data_path, input, page_infos):
         bounded_combine_img = combine_img[h1:h2+1, w1:w2+1]
         combine_ori = combine_ori[h1:h2+1, w1:w2+1]
         #combine char (maybe it should tell us the orientation of left image)
-        combined, combined_floor = cmbchar.combine_char(combined, bounded_combine_img, combined_ori, combine_ori, combined_floor, bottom_line, page_infos['tracking'])
+        combined, combined_floor, combined_ori = cmbchar.combine_char(combined, bounded_combine_img, combined_ori, combine_ori, combined_floor, bottom_line, page_infos['tracking'])
     # paste the combined word to page
     if page_infos['word offset'] + combined.shape[1] > page_infos['word end']:
         new_line(page_infos)
     page = page_infos['page']
+    # print(combined_floor)
     paste_start = page_infos['line offset'] - combined_floor
+    # print(paste_start)
     page[paste_start:paste_start + combined.shape[0], page_infos['word offset']:page_infos['word offset']+combined.shape[1]] = combined
+    page_infos['page'] = page
     return
 
 def generate_sentence(data_path, input, page_infos):

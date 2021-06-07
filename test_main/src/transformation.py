@@ -69,7 +69,7 @@ def transform(img, parts, connect_list, aver_orientation):
     # parts = label_to_parts(label)
     
     h, w = img.shape
-    extend = 10
+    extend = 20
     h += extend*2
     w += extend*2
 

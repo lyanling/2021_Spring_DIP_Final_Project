@@ -56,6 +56,7 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 	ori_img = np.zeros_like(out_img)
 	n = 0
 	for part in bold_parts:
+		print(part)
 		r, c = np.array(part).T
 		out_img[r, c] = 0
 		ori = aver_orientation[n]
