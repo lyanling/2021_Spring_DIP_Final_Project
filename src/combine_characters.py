@@ -156,6 +156,5 @@ def combine_char(img_left, img_right, ori_left, ori_right, floor_left, floor_rig
                 matches.append((pos_left, pos_right, ori_left, ori_right, floor_left, floor_right))
             best_match, dist = find_best_match(matches, expected_dist)
             img_combined, floor_combined = draw_line(img_left, img_right, best_match, dist, pattern_list)
-    orientation = orien.get_orientation(img_combined)
-    return img_combined, floor_combined, orientation
+    return img_combined, floor_combined
 
