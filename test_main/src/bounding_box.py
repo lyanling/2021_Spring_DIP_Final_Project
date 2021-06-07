@@ -25,12 +25,15 @@ def get_thinning_box(in_path, out_path, start_idx=33, end_idx=38):
     thin_dir.mkdir(parents=True, exist_ok=True)
     for i in range(start_idx, end_idx+1):
         word = cv.imread(f'{in_path}/{i}.png', cv.IMREAD_GRAYSCALE)
-        thin_word = inv(thin.thinning(inv(word)))
-        cv.imwrite(f'{thin_dir}/{i}.png', thin_word)
+        if word is not None:
+            word = (np.where(word == 0, 255, 0)).astype(np.uint8)
+            thin_word = cv.ximgproc.thinning(word)
+            thin_word = (np.where(thin_word == 0, 255, 0)).astype(np.uint8)
+            cv.imwrite(f'{thin_dir}/{i}.png', thin_word)
     return str(thin_dir)
 
 def get_bottom_line(file_dir):
     bottom_line = []
     with open(file_dir+'/bottom_line.txt', 'r') as f:
         bottom_line = [int(l.rstrip()) for l in f.readlines()]
-    return(bottom_line)
+    return bottom_line

@@ -5,7 +5,7 @@ import orientation as orient
 import cv2 as cv
 from pathlib import Path
 import numpy as np
-import MorphologicalProcessing as morpho
+# import MorphologicalProcessing as morpho
 from modules import find_cut_point as fcp
 import classification as clf
 
@@ -56,6 +56,8 @@ def get_frame_data(frame_path, thin_path, out_path):
         print(f'start getting frame {i}\'s data')
         thin_img = cv.imread(f'{thin_path}/{i}.png', cv.IMREAD_GRAYSCALE)
         frame = cv.imread(f'{frame_path}/{i}.png', cv.IMREAD_GRAYSCALE)
+        if frame is None:
+            continue
         theta = orient.get_orientation(thin_img)
         save_theta(theta, i, out_path)
         cut_points, parts = fcp.find_cut_point(thin_img, theta)

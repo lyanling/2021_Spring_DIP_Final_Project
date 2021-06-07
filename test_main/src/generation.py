@@ -30,19 +30,19 @@ def generate_word(input, paper, labels):
         pass
     return
 
-def generate_sentence(input, space, paper, labels):
+def generate_sentence(input, word_spacing, tracking, paper, labels):
     words = input.split(' ')
     for word in words:
         generate_word(word, paper, labels)
         # put space
     return
 
-def generate_text(fin_path, space):
+def generate_text(fin_path, leading, word_spacing, tracking):
     paper = np.zeros(0)
     labels = load_infos()
     with open(fin_path, 'r') as fin:
         rows = fin.readlines()
         for row in rows:
-            generate_sentence(row, space, paper, labels)
+            generate_sentence(row, word_spacing, tracking, paper, labels)
             # new line
     return

@@ -1,10 +1,10 @@
 import argparse
-import numpy as np
+# import numpy as np
 import pre_processing as pre
 from pathlib import Path
-import cv2 as cv
+# import cv2 as cv
 import bounding_box as box
-import orientation as orient
+# import orientation as orient
 import tmp_funcs as tmp
 
 parser = argparse.ArgumentParser(description='Part I: divide characters into parts : ) ) )', epilog="Run \"generating.py\" after this part!!")
@@ -18,6 +18,11 @@ Path(args.out_path).mkdir(parents=True, exist_ok=True)
 in_path = str(Path(args.in_path))
 out_path = str(Path(args.out_path))
 
+
+frame_path = f'{out_path}/frames'
+thin_path = f'{out_path}/thinning'
+
+
 # get frames
 frame_path = pre.pre_processing(in_path, out_path, args.extension)
 
@@ -26,6 +31,4 @@ thin_path = box.get_thinning_box(frame_path, out_path)
 
 # save check image of orientation, cut points, and parts
 # save frame data (cut points position, part labels)
-# frame_path = f'{out_path}/frames'
-# thin_path = f'{out_path}/thinning'
 tmp.get_frame_data(frame_path, thin_path, out_path)

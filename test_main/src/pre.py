@@ -1,18 +1,9 @@
 import numpy as np
 import cv2 as cv
+import MorphologicalProcessing as morpho
 from pathlib import Path
 import bounding_box as box
 import time
-
-
-
-def object_counting(img):
-    contours, _ = cv.findContours(img.astype(np.uint8), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
-    count = len(contours)
-    label = np.zeros_like(img)
-    for (i, cnt) in enumerate(contours):
-        cv.drawContours(label, [cnt], 0, i+1, thickness=-1)
-    return count, label
 
 def thresholding(img, t):
     img_bool = np.where(img > t, False, True)   # pattern be True
@@ -65,6 +56,7 @@ def cleanBoundary(img, img_bool, manual=False, width=6):
     return img, img_bool
 
 def extractFrames(img, label, count, img_bool, start_ascii_code, out_path):
+    start = time.time()
     x, y = [], [] # the upper-left corner of each frame
     error_count = 0
     bottom_line_list = []
@@ -88,7 +80,11 @@ def extractFrames(img, label, count, img_bool, start_ascii_code, out_path):
         sort_ind = np.concatenate((sort_ind, r), axis=1)
     sort_ind = sort_ind.flatten()
     count -= error_count
+    end = time.time()
+    print("extract prep time: ", end-start)
     for i in range(count):
+        print(i)
+        start = time.time()
         I = np.where(label == sort_ind[i] + 1)
         x_max, x_min, y_max, y_min = I[0].max(), I[0].min(), I[1].max(), I[1].min()
         frame = np.zeros((x_max-x_min+1, y_max-y_min+1), dtype=np.uint8)
@@ -101,24 +97,29 @@ def extractFrames(img, label, count, img_bool, start_ascii_code, out_path):
         bottom_line_list.append(bottom_line)
         if not (bounding_frame == 255).all():
             cv.imwrite(f'{out_path}/{start_ascii_code + i}.png', bounding_frame)
+        end = time.time()
+        print('time: ', end-start)
     return bottom_line_list
 
-def pre_processing_on_img(imgs, start_ascii_code, out_path):
-    img_bool, img_uint8, img_check = imgs
-    count, label = object_counting(img_uint8)
-    return extractFrames(img_check, label, count, img_bool, start_ascii_code, out_path)
+def pre_processing_on_img(MP, start_ascii_code, out_path):
+    start = time.time()
+    print('start counting')
+    count, label = MP.objectCounting()
+    end = time.time()
+    print('counting time: ', end-start)
+    return extractFrames(MP.img_check, label, count, MP.img, start_ascii_code, out_path)
 
 def comfirm_thresholding(img, threshold):
-    img_bool, img_uint8, img_check = thresholding(img, threshold)
+    MP = morpho.MorphologicalProcessing(img, t=threshold)
     wind_name = 'check threshold '
     cv.namedWindow(wind_name)
     while(True):
-        cv.imshow(wind_name, img_check)
+        cv.imshow(wind_name, MP.img_check)
         cv.waitKey(0)
         OK = input(f"fine thresholding? Enter a number to change threshold (current: {threshold}), or enter \"Y\" if you think its good.")
         try:
             threshold = int(OK)
-            img_bool, img_uint8, img_check = thresholding(img, threshold)
+            MP = morpho.MorphologicalProcessing(img, t=threshold)
         except:
             if OK == 'Y':
                 break
@@ -127,7 +128,7 @@ def comfirm_thresholding(img, threshold):
     cv.waitKey(1)
     cv.destroyAllWindows()
     cv.waitKey(1)
-    return img_bool, img_uint8, img_check
+    return MP
 
 def pre_processing(in_path, out_path, extension):    
     threshold = 90    
