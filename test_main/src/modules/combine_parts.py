@@ -52,12 +52,26 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 			adjust_connect_list(connect_list, c_label, shift_value)	# adjust the information of connecting points, 
 																		# since the position has changed
 
+	min_h, min_w = 1000, 1000
+	max_h, max_w = -1000, -1000
+
+	for part in bold_parts:
+		r, c = np.array(part).T
+		min_h = min(min_h, min(r))
+		min_w = min(min_w, min(c))
+		max_h = max(min_h, max(r))
+		max_w = max(min_w, max(c))
+	h = max_h - min_h
+	w = max_w - min_w
+
 	# method 1
-	ori_img = np.zeros_like(out_img)
+	ori_img = np.zeros([h, w])
+	ori_img.fill(-1)
 	n = 0
 	for part in bold_parts:
-		print(part)
 		r, c = np.array(part).T
+		r -= min_h
+		c -= min_w
 		out_img[r, c] = 0
 		ori = aver_orientation[n]
 		ori_img[r, c] = ori
