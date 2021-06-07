@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 from orientaion_comparison import has_similar_orientation_2
 import orientation as orien
+import random
 
 def find_combine_point(img, ori, side, count):
     pos_x, pos_y = np.where(img == 0)
@@ -125,7 +126,7 @@ def draw_line(img_left, img_right, match, space, pattern_list):
     # draw
     # get line pattern
     patterns = pattern_list[pattern_idx]
-    patter_r = 0
+    pattern_r = 0
     if ori_left > 0:
         pattern_r = -(slope[0]-1)   # if orientation > 0, start from the most left, lowest pixel of the pattern
     current_c = pos_left[1] + 1
@@ -142,7 +143,7 @@ def draw_line(img_left, img_right, match, space, pattern_list):
         current_r += slope[0]
         current_c += slope[1]
         
-    return img_combined, floor_above
+    return img_combined, floor_above, start_right
 
 def combine_char(img_left, img_right, ori_left, ori_right, floor_left, floor_right, expected_dist, count=5):
     if img_left == None:
@@ -150,7 +151,6 @@ def combine_char(img_left, img_right, ori_left, ori_right, floor_left, floor_rig
     cpoint_pos_left, cpoint_ori_left = find_combine_point(img_left, ori_left, 'left', count)
     cpoint_pos_right, cpoint_ori_right = find_combine_point(img_right, ori_right, 'right', count)
     matches = []
-
     pattern_list = get_patterns()
 
     for i in range(count):
@@ -163,5 +163,6 @@ def combine_char(img_left, img_right, ori_left, ori_right, floor_left, floor_rig
                 matches.append((pos_left, pos_right, ori_left, ori_right, floor_left, floor_right))
             best_match, dist = find_best_match(matches, expected_dist)
             img_combined, floor_combined = draw_line(img_left, img_right, best_match, dist, pattern_list)
+    
     return img_combined, floor_combined
 
