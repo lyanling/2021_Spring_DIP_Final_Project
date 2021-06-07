@@ -156,4 +156,3 @@ def combine_char(img_left, img_right, ori_left, ori_right, floor_left, floor_rig
             best_match, dist = find_best_match(matches, expected_dist)
             img_combined, floor_combined = draw_line(img_left, img_right, best_match, dist, pattern_list)
     return img_combined, floor_combined
-

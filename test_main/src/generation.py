@@ -42,6 +42,7 @@ def load_infos(path):
 def generate_word(fin_path, input, tracking, page, labels, connect_lists, page_infos):
     combined = None
     combined_floor = None
+    combined_ori = None
     for char in input:
         code = ord(char)
         label = labels[code]
@@ -50,12 +51,14 @@ def generate_word(fin_path, input, tracking, page, labels, connect_lists, page_i
         #transform
         new_img, trans_parts, connect_list = tf.transform(img, label, connect_list)
         #combine parts, out: combined_char
-        combine_img = cp.combine_parts(new_img, trans_parts, connect_list)
+        combine_img, combine_ori = cp.combine_parts(new_img, trans_parts, connect_list)
         # new orientation and bounding box
-        bounded_combine_img, bottom_line = box.get_bounding_box(combine_img)
-
+        bound, bottom_line = box.get_bounding_box(combine_img)
+        h1, h2, w1, w2 = bound
+        bounded_combine_img = combine_img[h1:h2+1, w1:w2+1]
+        combine_ori = combine_ori[h1:h2+1, w1:w2+1]
         #combine char (maybe it should tell us the orientation of left image)
-        combined, combined_floor = cmbchar.combine_char(combined, bounded_combine_img, None, None, combined_floor, bottom_line, tracking)
+        combined, combined_floor = cmbchar.combine_char(combined, bounded_combine_img, combined_ori, combine_ori, combined_floor, bottom_line, tracking)
     # paste the combined word to page
     if page_infos['word offset'] + combined.shape[1] > page['word end']:
         new_line(page_infos)
@@ -75,7 +78,6 @@ def generate_sentence(fin_path, input, labels, page_infos):
     return
 
 def generate_text(fin_path, text_path, leading, word_spacing, tracking, header, footer):
-
     # init page
     size = (3508, 2480)
     page_infos = {}
