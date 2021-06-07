@@ -1,12 +1,14 @@
 import cv2 as cv
 import numpy as np
-from orientaion_comparison import has_similar_orientation
+from orientaion_comparison import has_similar_orientation_2
+import orientation as orien
+import random
 
 def find_combine_point(img, ori, side, count):
     pos_x, pos_y = np.where(img == 0)
     sorted_idx = np.argsort(pos_x)
     if side=='left':    # find the right-most point for left img
-        cpoint_pos = tuple([pos_x[sorted_idx[-count:]], pos_y[sorted_idx[-count:]]])
+        cpoint_pos = tuple(pos_x[sorted_idx[-count:]], pos_y[sorted_idx[-count:]])
         cpoint_ori = ori[cpoint_pos]
     elif side=='right':   # find the left-most point for right img 
         cpoint_pos = tuple(pos_x[sorted_idx[:count]], pos_y[sorted_idx[:count]])
@@ -19,7 +21,7 @@ def find_combine_point(img, ori, side, count):
 
 def match_points(pos_left, pos_right, ori_left, ori_right, floor_left, floor_right):
     # straight line
-    if not has_similar_orientation(ori_left, ori_right, threshold=20):
+    if not has_similar_orientation_2(ori_left, ori_right, threshold=20):
         return False
     height_left = pos_left[0] - floor_left
     height_right = pos_right[0] - floor_right
@@ -49,6 +51,8 @@ def find_best_match(matches, expected_dist):
     return best_match, dist[sorted_idx[0]]
 
 def getSlope(ori):  # dr, dc
+    if (ori > 90):
+        ori -= 180
     if (ori <= -56 and ori > 78):    # -67
         return 0, (3, 2)
     elif (ori <= -34):  # -45
@@ -88,6 +92,10 @@ def get_patterns():
             pattern[i] = (pattern[i] ^ 1) * 255
     return pattern_list
 
+def chooseAPattern(patterns):
+    p = random.uniform(0, len(patterns))
+    return patterns[p]
+
 def draw_line(img_left, img_right, match, space, pattern_list):
     pos_left, pos_right, ori_left, ori_right, floor_left, floor_right = match
     m_l, n_l = img_left.shape
@@ -117,14 +125,15 @@ def draw_line(img_left, img_right, match, space, pattern_list):
 
     # draw
     # get line pattern
-    pattern = pattern_list[pattern_idx]
-    patter_r = 0
+    patterns = pattern_list[pattern_idx]
+    pattern_r = 0
     if ori_left > 0:
         pattern_r = -(slope[0]-1)   # if orientation > 0, start from the most left, lowest pixel of the pattern
     current_c = pos_left[1] + 1
     current_r = pos_left[0] + start_left
 
     while (current_c < (pos_left[1] + dc)):
+        pattern = chooseAPattern(patterns)
         rr = current_r + pattern_r
         img_combined[rr:rr + slope[0], current_c:current_c + slope[1]] &= pattern
         if (rr - 1 >= 0):
@@ -134,15 +143,14 @@ def draw_line(img_left, img_right, match, space, pattern_list):
         current_r += slope[0]
         current_c += slope[1]
         
-    return img_combined, floor_above
+    return img_combined, floor_above, start_right
 
 def combine_char(img_left, img_right, ori_left, ori_right, floor_left, floor_right, expected_dist, count=5):
-    if img_left is None:
+    if img_left == None:
         return img_right, floor_right
     cpoint_pos_left, cpoint_ori_left = find_combine_point(img_left, ori_left, 'left', count)
     cpoint_pos_right, cpoint_ori_right = find_combine_point(img_right, ori_right, 'right', count)
     matches = []
-
     pattern_list = get_patterns()
 
     for i in range(count):
@@ -155,4 +163,6 @@ def combine_char(img_left, img_right, ori_left, ori_right, floor_left, floor_rig
                 matches.append((pos_left, pos_right, ori_left, ori_right, floor_left, floor_right))
             best_match, dist = find_best_match(matches, expected_dist)
             img_combined, floor_combined = draw_line(img_left, img_right, best_match, dist, pattern_list)
+    
     return img_combined, floor_combined
+
