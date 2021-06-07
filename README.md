@@ -12,3 +12,6 @@
   * output: a list of cut points
     * cut_points = [p1, p2, ..., pn]
     * the form of each point: point = [x, y]
+
+* test/
+	* python3 main.py 2x4.png
