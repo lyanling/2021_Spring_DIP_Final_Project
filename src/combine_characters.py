@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 from orientaion_comparison import has_similar_orientation
+import orientation as orien
 
 def find_combine_point(img, ori, side, count):
     pos_x, pos_y = np.where(img == 0)
@@ -49,6 +50,8 @@ def find_best_match(matches, expected_dist):
     return best_match, dist[sorted_idx[0]]
 
 def getSlope(ori):  # dr, dc
+    if (ori > 90):
+        ori -= 180
     if (ori <= -56 and ori > 78):    # -67
         return 0, (3, 2)
     elif (ori <= -34):  # -45
