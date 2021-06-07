@@ -125,7 +125,7 @@ def draw_line(img_left, img_right, match, space, pattern_list):
     # draw
     # get line pattern
     patterns = pattern_list[pattern_idx]
-    patter_r = 0
+    pattern_r = 0
     if ori_left > 0:
         pattern_r = -(slope[0]-1)   # if orientation > 0, start from the most left, lowest pixel of the pattern
     current_c = pos_left[1] + 1
