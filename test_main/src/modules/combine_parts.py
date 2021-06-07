@@ -31,8 +31,6 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 	# part1's connect_points_pairs = [(X, part1's pointA, partX's point C), 
 								# (Y, part1's point B, partY's point D), ...]
 
-	out_img = np.zeros_like(img)
-	out_img.fill(255)
 
 	# orientation = get_orientation(img)
 	# adjust_orientation(img, orientation)
@@ -59,12 +57,15 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 		r, c = np.array(part).T
 		min_h = min(min_h, min(r))
 		min_w = min(min_w, min(c))
-		max_h = max(min_h, max(r))
-		max_w = max(min_w, max(c))
-	h = max_h - min_h
-	w = max_w - min_w
+		max_h = max(max_h, max(r))
+		max_w = max(max_w, max(c))
+	h = max_h - min_h + 1
+	w = max_w - min_w + 1
 
 	# method 1
+	out_img = np.zeros([h, w])
+	out_img.fill(255)
+
 	ori_img = np.zeros([h, w])
 	ori_img.fill(-1)
 	n = 0
