@@ -5,7 +5,7 @@ from pathlib import Path
 # import cv2 as cv
 import bounding_box as box
 # import orientation as orient
-import tmp_funcs as tmp
+import frame_data as fdata
 
 parser = argparse.ArgumentParser(description='Part I: divide characters into parts : ) ) )', epilog="Run \"generating.py\" after this part!!")
 parser.add_argument('in_path', help="input directory")
@@ -31,4 +31,4 @@ thin_path = box.get_thinning_box(frame_path, out_path)
 
 # save check image of orientation, cut points, and parts
 # save frame data (cut points position, part labels)
-tmp.get_frame_data(frame_path, thin_path, out_path)
+fdata.get_frame_data(frame_path, thin_path, out_path)
