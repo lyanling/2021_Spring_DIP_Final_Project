@@ -516,15 +516,17 @@ def add_rest_point(new_cut_points, parts, img):
 	for part in parts:
 		all_part += part
 	r, c = np.array(all_part).T
-	current_img = (np.zeros_like(img)).fill(255)
+	current_img = (np.zeros_like(img))
+	current_img.fill(255)
 	current_img[r, c] = 0
 	or_img = current_img | img
-	rest_img = current_img ^ or_img
-	
-	r, c = np.array(rest_img == 255)
+	rest_img = img ^ or_img
+
+	r, c = np.where(rest_img == 255)
 	rest_part = list(zip(r, c))
-	new_cut_points.append(rest_part[0])
-	parts.append(rest_part)
+	if len(rest_part) != 0:
+		new_cut_points.append(rest_part[0])
+		parts.append(rest_part)
 
 def find_cut_point(img, orientation, threshold=45):
 	cut_points = []
