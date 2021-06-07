@@ -88,6 +88,10 @@ def get_patterns():
             pattern[i] = (pattern[i] ^ 1) * 255
     return pattern_list
 
+def chooseAPattern(patterns):
+    p = random.uniform(0, len(patterns))
+    return patterns[p]
+
 def draw_line(img_left, img_right, match, space, pattern_list):
     pos_left, pos_right, ori_left, ori_right, floor_left, floor_right = match
     m_l, n_l = img_left.shape
@@ -117,14 +121,15 @@ def draw_line(img_left, img_right, match, space, pattern_list):
 
     # draw
     # get line pattern
-    pattern = pattern_list[pattern_idx]
-    patter_r = 0
+    patterns = pattern_list[pattern_idx]
+    pattern_r = 0
     if ori_left > 0:
         pattern_r = -(slope[0]-1)   # if orientation > 0, start from the most left, lowest pixel of the pattern
     current_c = pos_left[1] + 1
     current_r = pos_left[0] + start_left
 
     while (current_c < (pos_left[1] + dc)):
+        pattern = chooseAPattern(patterns)
         rr = current_r + pattern_r
         img_combined[rr:rr + slope[0], current_c:current_c + slope[1]] &= pattern
         if (rr - 1 >= 0):
