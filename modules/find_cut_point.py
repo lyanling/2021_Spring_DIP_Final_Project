@@ -557,4 +557,4 @@ def find_cut_point(img, orientation, threshold=45):
 	# for i in range(len(connect_list)):
 	# 	print(i+1, connect_list[i])
 
-	return new_cut_points, parts, connect_list
+	return new_cut_points, parts, connect_list, aver_orientation

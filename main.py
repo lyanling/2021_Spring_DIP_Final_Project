@@ -7,6 +7,7 @@ from modules import find_cut_point as fcp
 import orientation as orien
 import bounding_box as bb
 from pathlib import Path
+import devide_parts as dp
 import transformation as tf
 from modules import combine_parts as cp
 
@@ -24,7 +25,7 @@ def save_cut_points(img, i, cut_points):
 def save_parts(img, i, parts):
     part_dir = 'parts/'
     Path(part_dir).mkdir(parents=True, exist_ok=True)
-    n = 0
+    n = 1
     for part in parts:
         part_img_name = part_dir+str(i)+'_'+str(n)+'.png'
         part_img = np.zeros_like(img)
@@ -84,12 +85,12 @@ for i in range(start_idx, end_idx+1):
     img = cv2.imread(file_dir+str(i)+'.png', cv2.IMREAD_GRAYSCALE)
     theta = orien.get_orientation(img)
     save_theta(theta, i)
-    cut_points, parts, connect_list = fcp.find_cut_point(img, theta)
+    cut_points, parts, connect_list, aver_orientation = fcp.find_cut_point(img, theta)
     save_cut_points(img, i, cut_points)
     # print(len(parts))
     save_parts(img, i, parts)
-    new_img, trans_parts, connect_list = tf.transform(img, parts, connect_list)
+    new_img, trans_parts, connect_list, aver_orientation = tf.transform(img, parts, connect_list, aver_orientation)
     save_trans_parts(new_img, i, trans_parts)
-    combine_img = cp.combine_parts(new_img, trans_parts, connect_list)
+    combine_img, ori_img = cp.combine_parts(new_img, trans_parts, connect_list, aver_orientation)
     save_combine_img(combine_img, i)
 # print(cut_points_list)

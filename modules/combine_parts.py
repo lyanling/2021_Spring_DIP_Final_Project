@@ -25,7 +25,7 @@ def shift_part(parts, label, shift_value):
         c = point[1] + shift_value[1]
         parts[label-1][i] = (r, c)
 
-def combine_parts(img, parts, connect_list):
+def combine_parts(img, bold_parts, connect_list, aver_orientation):
 	# parts: 
 	# connect_points: [[part1's connect_points_pairs], [], [], ...]
 	# part1's connect_points_pairs = [(X, part1's pointA, partX's point C), 
@@ -48,13 +48,18 @@ def combine_parts(img, parts, connect_list):
 			c_connect_point = connect_list[label-1][c_label]	# the point in this part that connects another part
 			label_connect_point = connect_list[c_label-1][label]	# the point in another part that connects this part
 			shift_value = (label_connect_point[0] - c_connect_point[0], label_connect_point[1] - c_connect_point[1])
-			shift_part(parts, c_label, shift_value)
+			shift_part(bold_parts, c_label, shift_value)
 			adjust_connect_list(connect_list, c_label, shift_value)	# adjust the information of connecting points, 
 																		# since the position has changed
 
-	for part in parts:
-		for point in part:
-			out_img[point] = 0
+	# method 1
+	ori_img = np.zeros_like(out_img)
+	n = 0
+	for part in bold_parts:
+		r, c = np.array(part).T
+		out_img[r, c] = 0
+		ori = aver_orientation[n]
+		ori_img[r, c] = ori
 	
-	return out_img
+	return out_img, ori_img
 
