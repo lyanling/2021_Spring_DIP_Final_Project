@@ -62,3 +62,4 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 		ori_img[r, c] = ori
 	
 	return out_img, ori_img
+
