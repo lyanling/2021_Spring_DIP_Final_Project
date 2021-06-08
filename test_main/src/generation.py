@@ -68,7 +68,7 @@ def generate_word(data_path, input, page_infos):
     for char in input:
         code = ord(char)
         # print(code)
-        print(char)
+        # print(char)
         label, connect_list, avg_ori  = load_infos(data_path, code)
         img = cv.imread(f'{data_path}/frames/{code}.png', cv.IMREAD_GRAYSCALE)
         #transform

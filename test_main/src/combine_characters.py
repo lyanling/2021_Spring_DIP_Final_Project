@@ -25,8 +25,8 @@ def match_points(pos_left, pos_right, ori_left, ori_right, floor_left, floor_rig
     # straight line
     if not has_similar_orientation_2(ori_left, ori_right, threshold=20):
         return False
-    height_left = pos_left[0] - floor_left
-    height_right = pos_right[0] - floor_right
+    height_left = floor_left - pos_left[0]
+    height_right = floor_right - pos_right[0]
     if ori_left > 0 and height_left >= height_right:
         return True
     if ori_left < 0 and height_left <= height_right:
@@ -39,8 +39,8 @@ def find_best_match(matches, expected_dist, floor_left, floor_right):
     dist = []
     for match in matches:
         pos_left, pos_right, ori_left, ori_right = match
-        height_left = pos_left[0] - floor_left
-        height_right = pos_right[0] - floor_right
+        height_left = floor_left - pos_left[0]
+        height_right = floor_right - pos_right[0]
         if height_left == height_right:
             dist.append(0)
             continue
@@ -55,7 +55,7 @@ def find_best_match(matches, expected_dist, floor_left, floor_right):
     return best_match#, dist[sorted_idx[0]]
 
 def kerning(img_left, img_right, floor_left, floor_right, space, last_width):
-    img_right = img_right[:, -last_width:]
+    img_left = img_left[:, -last_width:]
     left_pos_x, left_pos_y = np.where(img_left == 0)
     height_left = floor_left - left_pos_x
     right_pos_x, right_pos_y = np.where(img_right == 0)
@@ -68,13 +68,13 @@ def kerning(img_left, img_right, floor_left, floor_right, space, last_width):
         if pos_left.size == 0 or pos_right.size == 0:
             dist.append(np.inf)
             continue
-        pos_left = img_left.shape[1] - pos_left[-1]
-        pos_right = pos_right[0]
-        dist.append(pos_left + pos_right -2)
+        pos_left = img_left.shape[1] - pos_left.max()
+        pos_right = pos_right.min()
+        dist.append(pos_left + pos_right - 1)
     dist = np.array(dist)
-    min_dist_height = min_h + dist.argmin()
+    # min_dist_height = min_h + dist.argmin()
     min_dist = dist.min()
-    print(min_dist, min_dist_height)
+    # print(min_dist, min_dist_height)
     if min_dist == np.inf:
         return space
     else:
