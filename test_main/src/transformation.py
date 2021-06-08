@@ -4,6 +4,11 @@ import math
 import random
 from modules import geo_modify as gm
 from numpy.linalg import inv
+<<<<<<< HEAD
+=======
+import cv2 as cv
+# import pickle
+>>>>>>> 18247ae29fb0175c082afe62192225b8001494dd
 
 def adjust_connect_list(connect_list, label, shift_value):
     connect_labels = list(connect_list[label-1])
@@ -99,14 +104,12 @@ def backward_transformation(part_img, cart_center, mode='random', size=12): # an
     trans_pos[1] = trans_pos[1].reshape((1, -1))
     cart_x = trans_pos[1]
     cart_y = h-1-trans_pos[0]
-    cart_x -= w//2
-    cart_y -= h//2
     trans_cart = np.r_[cart_x, cart_y, np.ones((1, trans_pos[0].size))]
     trans_cart = np.matmul(M_inv, trans_cart)
-    trans_cart[0] += w//2
-    trans_cart[1] += h//2
     trans_pos[0] = h-1-trans_cart[1]
     trans_pos[1] = trans_cart[0]
+    trans_check_1 = np.array(trans_pos[0]).reshape((h, w))
+    trans_check_2 = np.array(trans_pos[1]).reshape((h, w))
     trans_pos[0][trans_pos[0] < 0] = 0
     trans_pos[1][trans_pos[1] < 0] = 0
     trans_pos[0][trans_pos[0] > h-1] = h-1
@@ -114,7 +117,12 @@ def backward_transformation(part_img, cart_center, mode='random', size=12): # an
 
     trans_pos[0] = np.round(trans_pos[0]).astype(int)
     trans_pos[1] = np.round(trans_pos[1]).astype(int)
+    trans_pos = tuple([trans_pos[0], trans_pos[1]])
     trans_img[:, :] = part_img[trans_pos].reshape((h, w))
+    trans_img = np.where(trans_check_1 < 0, 255, trans_img)
+    trans_img = np.where(trans_check_1 > h-1, 255, trans_img)
+    trans_img = np.where(trans_check_2 < 0, 255, trans_img)
+    trans_img = np.where(trans_check_2 > w-1, 255, trans_img)
 
     # interp may be slow :( (
 
@@ -136,7 +144,7 @@ def backward_transformation(part_img, cart_center, mode='random', size=12): # an
 def transform(img, parts, connect_list, aver_orientation):
     
     h, w = img.shape
-    extend = 20
+    extend = 100
     h += extend*2
     w += extend*2
 
@@ -145,7 +153,7 @@ def transform(img, parts, connect_list, aver_orientation):
     new_img[extend:h-extend, extend:w-extend] = img
 
     for i in range(len(parts)):
-        shift_part(parts, i+1, (extend, extend))
+        # shift_part(parts, i+1, (extend, extend))
         adjust_connect_list(connect_list, i+1, (extend, extend))
 
     trans_parts = []
@@ -154,12 +162,18 @@ def transform(img, parts, connect_list, aver_orientation):
     for n in range(len(parts)):
         part = parts[n]
         part_img = getPartImg(h, w, part, extend)   # convert the part into an image
-        center = min(part)  # center at the point with smallest r
+        part_idx = np.where(part_img==0)
+        max_x, min_x, max_y, min_y = part_idx[0].max(), part_idx[0].min(), part_idx[1].max(), part_idx[1].min()
+        center_x = (max_x+min_x)//2
+        center_y = (max_y+min_y)//2
+
+        center = (center_x, center_y)  # center at the point with smallest r
         cart_center = gm.to_cart(center[1], center[0], h)   # to cartesian coordinate
 
         # backward transformation
         M, trans_img, dt = backward_transformation(part_img, cart_center)
         aver_orientation[n] += dt
+
 
         # adjust connect point pair
         adjust_connect_list_2(h, w, connect_list, n+1, M)

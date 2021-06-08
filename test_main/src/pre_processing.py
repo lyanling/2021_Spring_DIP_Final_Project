@@ -122,42 +122,44 @@ def pre_processing_on_img(imgs, start_ascii_code, out_path):
 
 def comfirm_thresholding(img, threshold):
     img_bool, img_uint8, img_check = thresholding(img, threshold)
-    wind_name = 'check threshold '
-    cv.namedWindow(wind_name)
-    while(True):
-        cv.imshow(wind_name, img_check)
-        cv.waitKey(0)
-        OK = input(f"fine thresholding? Enter a number to change threshold (current: {threshold}), or enter \"Y\" if you think its good.")
-        try:
-            threshold = int(OK)
-            img_bool, img_uint8, img_check = thresholding(img, threshold)
-        except:
-            if OK == 'Y':
-                break
-            else:
-                print('Please enter an integer or \"Y\".')
-    cv.waitKey(1)
-    cv.destroyAllWindows()
-    cv.waitKey(1)
+    # wind_name = 'check threshold '
+    # cv.namedWindow(wind_name)
+    # while(True):
+    #     cv.imshow(wind_name, img_check)
+    #     cv.waitKey(0)
+    #     OK = input(f"fine thresholding? Enter a number to change threshold (current: {threshold}), or enter \"Y\" if you think its good.")
+    #     try:
+    #         threshold = int(OK)
+    #         img_bool, img_uint8, img_check = thresholding(img, threshold)
+    #     except:
+    #         if OK == 'Y':
+    #             break
+    #         else:
+    #             print('Please enter an integer or \"Y\".')
+    # cv.waitKey(1)
+    # cv.destroyAllWindows()
+    # cv.waitKey(1)
     return img_bool, img_uint8, img_check
 
 def pre_processing(in_path, out_path, extension):    
-    threshold = 90    
+    threshold = 110    
     frame_path = Path(f"{out_path}/frames")
     frame_path.mkdir(parents=True, exist_ok=True)
     frame_path = str(frame_path)
     thin_frame_path = Path(f"{out_path}/thinning")
     thin_frame_path.mkdir(parents=True, exist_ok=True)
     thresholded_imgs = []
-    for i in range(1):
+    for i in range(16):
         print(f'start processing image {i}...')
         start_ascii_code = 33 + i * 6
         img_path = f"{in_path}/{i}{extension}"
         img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)
         thresholded_imgs.append(comfirm_thresholding(img, threshold))
+    print(len(thresholded_imgs))
     bottom_line = []
-    for i in range(1):
+    for i in range(16):
+        start_ascii_code = 33 + i * 6
         bottom_line += pre_processing_on_img(thresholded_imgs[i], start_ascii_code, out_path)
-    with open(out_path + "/bottom_line.txt", "w") as f:
-        f.writelines(str(l[0])+' '+str(l[1])+'\n' for l in bottom_line)   
+    # with open(out_path + "/bottom_line.txt", "wa") as f:
+    #     f.writelines(str(l[0])+' '+str(l[1])+'\n' for l in bottom_line)   
     return frame_path
