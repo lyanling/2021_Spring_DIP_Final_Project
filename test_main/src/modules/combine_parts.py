@@ -41,7 +41,7 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 		c_label = i+1
 		if len(connect_labels) > 0:		# connect this part to bigger part
 			label = connect_labels[0]
-			if (c_label <= label && (len(new_connect_list[c_label-1] > 0))):		# the smaller label, the bigger part
+			if (c_label <= label and (len(new_connect_list[c_label-1]) > 0)):		# the smaller label, the bigger part
 				continue
 			c_connect_point = connect_list[label-1][c_label]	# the point in this part that connects another part
 			label_connect_point = connect_list[c_label-1][label]	# the point in another part that connects this part
