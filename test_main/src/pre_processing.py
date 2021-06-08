@@ -160,6 +160,6 @@ def pre_processing(in_path, out_path, extension):
     for i in range(16):
         start_ascii_code = 33 + i * 6
         bottom_line += pre_processing_on_img(thresholded_imgs[i], start_ascii_code, out_path)
-    # with open(out_path + "/bottom_line.txt", "wa") as f:
-    #     f.writelines(str(l[0])+' '+str(l[1])+'\n' for l in bottom_line)   
+    with open(out_path + "/bottom_line.txt", "wa") as f:
+        f.writelines(str(l[0])+' '+str(l[1])+'\n' for l in bottom_line)   
     return frame_path

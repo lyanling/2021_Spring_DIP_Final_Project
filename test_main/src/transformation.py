@@ -138,7 +138,7 @@ def backward_transformation(part_img, cart_center, mode='random', size=12): # an
     return M, trans_img, dt
 
 
-def transform(img, parts, connect_list, aver_orientation):
+def transform(img, parts, connect_list, aver_orientation, code):
     
     h, w = img.shape
     extend = 100
@@ -159,6 +159,7 @@ def transform(img, parts, connect_list, aver_orientation):
     for n in range(len(parts)):
         part = parts[n]
         part_img = getPartImg(h, w, part, extend)   # convert the part into an image
+        cv.imwrite(f'ori_parts/{code}_{n}.png', part_img)
         part_idx = np.where(part_img==0)
         max_x, min_x, max_y, min_y = part_idx[0].max(), part_idx[0].min(), part_idx[1].max(), part_idx[1].min()
         center_x = (max_x+min_x)//2
@@ -171,6 +172,7 @@ def transform(img, parts, connect_list, aver_orientation):
         M, trans_img, dt = backward_transformation(part_img, cart_center)
         aver_orientation[n] += dt
 
+        cv.imwrite(f'transparts/{code}_{n}.png', trans_img)
 
         # adjust connect point pair
         adjust_connect_list_2(h, w, connect_list, n+1, M)

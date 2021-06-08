@@ -71,14 +71,15 @@ def generate_word(data_path, input, page_infos):
         img = cv.imread(f'{data_path}/frames/{code}.png', cv.IMREAD_GRAYSCALE)
         #transform
         parts = tf.label_to_parts(label)
-        new_img, trans_parts, connect_list, avg_ori = tf.transform(img, parts, connect_list, avg_ori)
+        new_img, trans_parts, connect_list, avg_ori = tf.transform(img, parts, connect_list, avg_ori, code)
         #combine parts, out: combined_char
         combine_img, combine_ori = cp.combine_parts(new_img, trans_parts, connect_list, avg_ori)
-        cv.imwrite(f'MyHandWriting/debug/{code}.png', combine_img)
+        cv.imwrite(f'combined/{code}.png', combine_img)
         # closing
         combine_img = np.where(combine_img ==0, 255, 0).astype(np.uint8)
         combine_img  = cv.morphologyEx(combine_img , cv.MORPH_CLOSE, np.ones((5, 5)))
         combine_img = np.where(combine_img==0, 255, 0).astype(np.uint8)
+        cv.imwrite(f'combined_closed/{code}.png', combine_img)
         # new orientation and bounding box
         bound, _ = box.get_bounding_box(combine_img)
         bottom_line = box.get_combined_bottom_line(combine_img, code, data_path)
@@ -92,8 +93,10 @@ def generate_word(data_path, input, page_infos):
         h1, h2, w1, w2 = bound
         combine_img = combine_img[h1:h2+1, w1:w2+1]
         combine_ori = combine_ori[h1:h2+1, w1:w2+1]
+        cv.imwrite(f'combined_resize/{code}.png', combine_img)
         #combine char (maybe it should tell us the orientation of left image)
         combined, combined_floor, combined_ori = cmbchar.combine_char(combined, combine_img, combined_ori, combine_ori, combined_floor, bottom_line, page_infos['tracking'])
+        
     # paste the combined word to page
     if page_infos['word offset'] + combined.shape[1] > page_infos['page'].shape[1] - page_infos['word end']:
         new_line(page_infos)
