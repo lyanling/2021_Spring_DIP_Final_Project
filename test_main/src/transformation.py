@@ -4,11 +4,8 @@ import math
 import random
 from modules import geo_modify as gm
 from numpy.linalg import inv
-<<<<<<< HEAD
-=======
 import cv2 as cv
 # import pickle
->>>>>>> 18247ae29fb0175c082afe62192225b8001494dd
 
 def adjust_connect_list(connect_list, label, shift_value):
     connect_labels = list(connect_list[label-1])
