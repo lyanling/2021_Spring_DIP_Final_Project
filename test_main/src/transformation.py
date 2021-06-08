@@ -4,7 +4,6 @@ import math
 import random
 from modules import geo_modify as gm
 from numpy.linalg import inv
-# import pickle
 
 def adjust_connect_list(connect_list, label, shift_value):
     connect_labels = list(connect_list[label-1])
@@ -65,8 +64,76 @@ def label_to_parts(label):
         parts.append(part)
     return parts
 
+def backward_transformation(part_img, cart_center, mode='random', size=12): # another mode: for specify size
+    theta_range = [-10, 10]
+    scale_range = [0.9, 1.1]
+
+    # translation
+    T = np.array([[1, 0, -cart_center[0]], [0, 1, -cart_center[1]], [0, 0, 1]])
+    TB = np.array([[1, 0, cart_center[0]], [0, 1, cart_center[1]], [0, 0, 1]])  # translate back
+
+    # scaling
+    if (mode == 'random'):
+        scale_mag = random.uniform(scale_range[0], scale_range[1])
+        dt = random.uniform(theta_range[0], theta_range[1]) / 360 * (math.pi)
+    else:
+        scale_mag = 1 / 36 * size
+        dt = 0
+    S = np.array([[scale_mag, 0, 0], [0, scale_mag, 0], [0, 0, 1]])
+
+    # rotation
+    R = np.array([[math.cos(dt), -math.sin(dt), 0], [math.sin(dt), math.cos(dt), 0], [0, 0, 1]])
+
+    # transform matrix
+    M = np.matmul(S, T)
+    M = np.matmul(R, M)
+    M = np.matmul(TB, M)
+    M_inv = inv(M)
+
+    # 
+    h, w = part_img.shape
+    trans_img = np.zeros_like(part_img)
+    trans_img.fill(255)
+    trans_pos = np.meshgrid(range(h), range(w), indexing='ij')
+    trans_pos[0] = trans_pos[0].reshape((1, -1))
+    trans_pos[1] = trans_pos[1].reshape((1, -1))
+    cart_x = trans_pos[1]
+    cart_y = h-1-trans_pos[0]
+    cart_x -= w//2
+    cart_y -= h//2
+    trans_cart = np.r_[cart_x, cart_y, np.ones((1, trans_pos[0].size))]
+    trans_cart = np.matmul(M_inv, trans_cart)
+    trans_cart[0] += w//2
+    trans_cart[1] += h//2
+    trans_pos[0] = h-1-trans_cart[1]
+    trans_pos[1] = trans_cart[0]
+    trans_pos[0][trans_pos[0] < 0] = 0
+    trans_pos[1][trans_pos[1] < 0] = 0
+    trans_pos[0][trans_pos[0] > h-1] = h-1
+    trans_pos[1][trans_pos[1] > w-1] = w-1
+
+    trans_pos[0] = np.round(trans_pos[0]).astype(int)
+    trans_pos[1] = np.round(trans_pos[1]).astype(int)
+    trans_img[:, :] = part_img[trans_pos].reshape((h, w))
+
+    # interp may be slow :( (
+
+    # for i in range(h):
+    #     for j in range(w):
+    #         (x, y) = gm.to_cart(j, i, h)    # to cartesian coordinate
+    #         in_vec = np.array([x, y, 1])    # input vector
+    #         u, v, z = np.dot(M_inv, in_vec)
+    #         c_point = gm.to_img_coord(u, v, h)  # to img coordinate
+    #         # trans_img[i, j] = gm.bilinear_interpolation(part_img, c_point)    # bilinear interpolation is not applicable in this case
+    #         c_i = max(min(h-1, round(c_point[0])), 0)   # find the nearest integer
+    #         c_j = max(min(w-1, round(c_point[1])), 0)
+    #         trans_img[i, j] = part_img[c_i, c_j]
+    
+
+    return M, trans_img, dt
+
+
 def transform(img, parts, connect_list, aver_orientation):
-    # parts = label_to_parts(label)
     
     h, w = img.shape
     extend = 20
@@ -82,8 +149,7 @@ def transform(img, parts, connect_list, aver_orientation):
         adjust_connect_list(connect_list, i+1, (extend, extend))
 
     trans_parts = []
-    theta_range = [-10, 10]
-    scale_range = [0.9, 1.1]
+    
 
     for n in range(len(parts)):
         part = parts[n]
@@ -91,62 +157,9 @@ def transform(img, parts, connect_list, aver_orientation):
         center = min(part)  # center at the point with smallest r
         cart_center = gm.to_cart(center[1], center[0], h)   # to cartesian coordinate
 
-        # translation
-        T = np.array([[1, 0, -cart_center[0]], [0, 1, -cart_center[1]], [0, 0, 1]])
-        TB = np.array([[1, 0, cart_center[0]], [0, 1, cart_center[1]], [0, 0, 1]])  # translate back
-
-        # scaling
-        scale_mag = random.uniform(scale_range[0], scale_range[1])
-        S = np.array([[scale_mag, 0, 0], [0, scale_mag, 0], [0, 0, 1]])
-
-        # rotation
-        dt = random.uniform(theta_range[0], theta_range[1]) / 360 * (math.pi)
-        R = np.array([[math.cos(dt), -math.sin(dt), 0], [math.sin(dt), math.cos(dt), 0], [0, 0, 1]])
-        aver_orientation[n] += dt
-
-        # transform matrix
-        M = np.matmul(S, T)
-        M = np.matmul(R, M)
-        M = np.matmul(TB, M)
-        M_inv = inv(M)
-
         # backward transformation
-        trans_img = np.zeros_like(part_img)
-        trans_img.fill(255)
-        trans_pos = np.meshgrid(range(h), range(w), indexing='ij')
-        trans_pos[0] = trans_pos[0].reshape((1, -1))
-        trans_pos[1] = trans_pos[1].reshape((1, -1))
-        cart_x = trans_pos[1]
-        cart_y = h-1-trans_pos[0]
-        cart_x -= w//2
-        cart_y -= h//2
-        trans_cart = np.r_[cart_x, cart_y, np.ones((1, trans_pos[0].size))]
-        trans_cart = np.matmul(M_inv, trans_cart)
-        trans_cart[0] += w//2
-        trans_cart[1] += h//2
-        trans_pos[0] = h-1-trans_cart[1]
-        trans_pos[1] = trans_cart[0]
-        trans_pos[0][trans_pos[0] < 0] = 0
-        trans_pos[1][trans_pos[1] < 0] = 0
-        trans_pos[0][trans_pos[0] > h-1] = h-1
-        trans_pos[1][trans_pos[1] > w-1] = w-1
-
-        trans_pos[0] = np.round(trans_pos[0]).astype(int)
-        trans_pos[1] = np.round(trans_pos[1]).astype(int)
-        trans_img[:, :] = part_img[trans_pos].reshape((h, w))
-
-        # interp may be slow :( (
-
-        # for i in range(h):
-        #     for j in range(w):
-        #         (x, y) = gm.to_cart(j, i, h)    # to cartesian coordinate
-        #         in_vec = np.array([x, y, 1])    # input vector
-        #         u, v, z = np.dot(M_inv, in_vec)
-        #         c_point = gm.to_img_coord(u, v, h)  # to img coordinate
-        #         # trans_img[i, j] = gm.bilinear_interpolation(part_img, c_point)    # bilinear interpolation is not applicable in this case
-        #         c_i = max(min(h-1, round(c_point[0])), 0)   # find the nearest integer
-        #         c_j = max(min(w-1, round(c_point[1])), 0)
-        #         trans_img[i, j] = part_img[c_i, c_j]
+        M, trans_img, dt = backward_transformation(part_img, cart_center)
+        aver_orientation[n] += dt
 
         # adjust connect point pair
         adjust_connect_list_2(h, w, connect_list, n+1, M)
