@@ -54,6 +54,14 @@ def find_best_match(matches, expected_dist, floor_left, floor_right):
     best_match = matches[sorted_idx[0]]
     return best_match#, dist[sorted_idx[0]]
 
+def kerning(img_left, img_right, floor_left, floor_right, space):
+    left_pos_x, left_pos_y = np.where(img_left == 0)
+    height_left = floor_left - left_pos_x
+    right_pos_x, right_pos_y = np.where(img_right == 0)
+    height_right = floor_right - right_pos_x
+    
+    return
+
 def getSlope(ori):  # dr, dc
     if (ori > 90):
         ori -= 180
@@ -120,6 +128,9 @@ def draw_line(img_left, img_right, match, space, pattern_list, floor_left, floor
         to_draw = False
 
     # combine two imgs
+
+    
+
     img_combined = np.zeros((floor_above + floor_below, n_l + n_r + round(new_space)))
     img_combined.fill(255)
     start_left = floor_above - floor_left   # the highest point's position of left_img

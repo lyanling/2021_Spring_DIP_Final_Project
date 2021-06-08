@@ -40,7 +40,7 @@ def draw_bottom_line(page_infos):
     for i in range(header, page.shape[0] - footer, leading):
         line = page[i, page_infos['word start']:-page_infos['word end']]
         draw_area = np.where(np.all(line == np.array([255, 255, 255]), axis=-1))
-        print(draw_area)
+        # print(draw_area)
         line[draw_area, :] = np.array([127, 127, 127])
         page[i, page_infos['word start']:-page_infos['word end']] = line
     page_infos['page'] = page
@@ -66,6 +66,7 @@ def generate_word(data_path, input, page_infos):
     combined_ori = None
     for char in input:
         code = ord(char)
+        # print(code)
         # print(char)
         label, connect_list, avg_ori  = load_infos(data_path, code)
         img = cv.imread(f'{data_path}/frames/{code}.png', cv.IMREAD_GRAYSCALE)
@@ -74,12 +75,12 @@ def generate_word(data_path, input, page_infos):
         new_img, trans_parts, connect_list, avg_ori = tf.transform(img, parts, connect_list, avg_ori, code)
         #combine parts, out: combined_char
         combine_img, combine_ori = cp.combine_parts(new_img, trans_parts, connect_list, avg_ori)
-        cv.imwrite(f'combined/{code}.png', combine_img)
+        # cv.imwrite(f'combined/{code}.png', combine_img)
         # closing
         combine_img = np.where(combine_img ==0, 255, 0).astype(np.uint8)
         combine_img  = cv.morphologyEx(combine_img , cv.MORPH_CLOSE, np.ones((5, 5)))
         combine_img = np.where(combine_img==0, 255, 0).astype(np.uint8)
-        cv.imwrite(f'combined_closed/{code}.png', combine_img)
+        # cv.imwrite(f'combined_closed/{code}.png', combine_img)
         # new orientation and bounding box
         bound, _ = box.get_bounding_box(combine_img)
         bottom_line = box.get_combined_bottom_line(combine_img, code, data_path)
@@ -93,10 +94,10 @@ def generate_word(data_path, input, page_infos):
         h1, h2, w1, w2 = bound
         combine_img = combine_img[h1:h2+1, w1:w2+1]
         combine_ori = combine_ori[h1:h2+1, w1:w2+1]
-        cv.imwrite(f'combined_resize/{code}.png', combine_img)
+        # cv.imwrite(f'combined_resize/{code}.png', combine_img)
         #combine char (maybe it should tell us the orientation of left image)
         combined, combined_floor, combined_ori = cmbchar.combine_char(combined, combine_img, combined_ori, combine_ori, combined_floor, bottom_line, page_infos['tracking'])
-        
+
     # paste the combined word to page
     if page_infos['word offset'] + combined.shape[1] > page_infos['page'].shape[1] - page_infos['word end']:
         new_line(page_infos)
@@ -111,14 +112,44 @@ def generate_word(data_path, input, page_infos):
     page_infos['word offset'] += combined.shape[1]
     return
 
+def put_space(page_infos):
+    page_infos['word offset'] += page_infos['word-spacing']
+    if page_infos['word offset'] > page_infos['page'].shape[1] - page_infos['word end']:
+        new_line(page_infos)
+    return
+
 def generate_sentence(data_path, input, page_infos):
-    words = input.split(' ')
-    for word in words:
-        generate_word(data_path, word, page_infos)
-        # put space
-        page_infos['word offset'] += page_infos['word-spacing']
-        if page_infos['word offset'] > page_infos['page'].shape[1] - page_infos['word end']:
+    word = ''
+    for char in input:
+        if char == ' ':
+            if word != '':
+                generate_word(data_path, word, page_infos)
+                word = ''
+            # put space
+            put_space(page_infos)
+        elif char == '  ':
+            if word != '':
+                generate_word(data_path, word, page_infos)
+                word = ''
+            for i in range(4):
+                put_space(page_infos)
+        elif char == '\n':
+            if word != '':
+                generate_word(data_path, word, page_infos)
+                word = ''
             new_line(page_infos)
+        else:
+            word += char
+    if word != '':
+        generate_word(data_path, word, page_infos)
+        word = ''
+    # words = input.split(' ')
+    # for word in words:
+    #     generate_word(data_path, word, page_infos)
+    #     # put space
+    #     page_infos['word offset'] += page_infos['word-spacing']
+    #     if page_infos['word offset'] > page_infos['page'].shape[1] - page_infos['word end']:
+    #         new_line(page_infos)
     return
 
 def generate_text(data_path, text_path, page_infos):
@@ -129,8 +160,9 @@ def generate_text(data_path, text_path, page_infos):
     with open(text_path, 'r') as fin:
         rows = fin.readlines()
         for row in rows:
-            row = row.strip()
-            generate_sentence(data_path, row, page_infos)
+            # row = row.strip()
+            if len(row) > 0:
+                generate_sentence(data_path, row, page_infos)
             # new line new page
             new_line(page_infos)
     save_page(page_infos)

@@ -10,8 +10,8 @@ parser.add_argument('data_path', help="handwriting directory generate by \"divid
 parser.add_argument('--l', dest="leading", type=int, default=80, help="leading")
 parser.add_argument('--w', dest="word_spacing", type=int, default=70, help="word-spacing")
 parser.add_argument('--t', dest="tracking", type=int, default=5, help="letter-spacing")
-parser.add_argument('--head', dest="header", type=int, default=300, help="page header")
-parser.add_argument('--foot', dest="footer", type=int, default=300, help="page footer")
+parser.add_argument('--head', dest="header", type=int, default=150, help="page header")
+parser.add_argument('--foot', dest="footer", type=int, default=150, help="page footer")
 parser.add_argument('-b', dest="bottom_line", action='store_true',help="draw bottom line")
 parser.add_argument('--s', dest="font_size", type=int, default=12, help="font size")
 parser.add_argument('--col', dest="font_color", default='black', help="font color")
@@ -33,10 +33,10 @@ page_infos['footer'] = args.footer
 page_infos['leading'] = args.leading
 page_infos['word-spacing'] = args.word_spacing
 page_infos['tracking'] = args.tracking
-page_infos['word start'] = 10
-page_infos['word end'] = 10
+page_infos['word start'] = 30
+page_infos['word end'] = 30
 page_infos['line offset'] = page_infos['header']
-page_infos['word offset'] = 10
+page_infos['word offset'] = 30
 page_infos['order'] = 0
 page_infos['bottom line'] = args.bottom_line
 page_infos['bottom line color'] = args.btlin_col
