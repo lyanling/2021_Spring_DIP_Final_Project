@@ -4,6 +4,7 @@ import math
 import random
 from modules import geo_modify as gm
 from numpy.linalg import inv
+import cv2 as cv
 # import pickle
 
 def adjust_connect_list(connect_list, label, shift_value):
@@ -69,7 +70,7 @@ def transform(img, parts, connect_list, aver_orientation):
     # parts = label_to_parts(label)
     
     h, w = img.shape
-    extend = 50
+    extend = 100
     h += extend*2
     w += extend*2
 
@@ -78,7 +79,7 @@ def transform(img, parts, connect_list, aver_orientation):
     new_img[extend:h-extend, extend:w-extend] = img
 
     for i in range(len(parts)):
-        shift_part(parts, i+1, (extend, extend))
+        # shift_part(parts, i+1, (extend, extend))
         adjust_connect_list(connect_list, i+1, (extend, extend))
 
     trans_parts = []
@@ -88,7 +89,12 @@ def transform(img, parts, connect_list, aver_orientation):
     for n in range(len(parts)):
         part = parts[n]
         part_img = getPartImg(h, w, part, extend)   # convert the part into an image
-        center = min(part)  # center at the point with smallest r
+        part_idx = np.where(part_img==0)
+        max_x, min_x, max_y, min_y = part_idx[0].max(), part_idx[0].min(), part_idx[1].max(), part_idx[1].min()
+        center_x = (max_x+min_x)//2
+        center_y = (max_y+min_y)//2
+
+        center = (center_x, center_y)  # center at the point with smallest r
         cart_center = gm.to_cart(center[1], center[0], h)   # to cartesian coordinate
 
         # translation
@@ -111,6 +117,7 @@ def transform(img, parts, connect_list, aver_orientation):
         M_inv = inv(M)
 
         # backward transformation
+
         trans_img = np.zeros_like(part_img)
         trans_img.fill(255)
         trans_pos = np.meshgrid(range(h), range(w), indexing='ij')
@@ -118,12 +125,8 @@ def transform(img, parts, connect_list, aver_orientation):
         trans_pos[1] = trans_pos[1].reshape((1, -1))
         cart_x = trans_pos[1]
         cart_y = h-1-trans_pos[0]
-        cart_x -= w//2
-        cart_y -= h//2
         trans_cart = np.r_[cart_x, cart_y, np.ones((1, trans_pos[0].size))]
         trans_cart = np.matmul(M_inv, trans_cart)
-        trans_cart[0] += w//2
-        trans_cart[1] += h//2
         trans_pos[0] = h-1-trans_cart[1]
         trans_pos[1] = trans_cart[0]
         trans_check_1 = np.array(trans_pos[0]).reshape((h, w))
@@ -137,11 +140,15 @@ def transform(img, parts, connect_list, aver_orientation):
         trans_pos[1] = np.round(trans_pos[1]).astype(int)
 
         trans_img[:, :] = part_img[trans_pos].reshape((h, w))
-
         trans_img = np.where(trans_check_1 < 0, 255, trans_img)
         trans_img = np.where(trans_check_1 > h-1, 255, trans_img)
         trans_img = np.where(trans_check_2 < 0, 255, trans_img)
         trans_img = np.where(trans_check_2 > w-1, 255, trans_img)
+        # cv.imshow(':(', trans_img)
+        # cv.waitKey(0)
+        # cv.waitKey(1)
+        # cv.destroyAllWindows()
+        # cv.waitKey(1)
         # interp may be slow :( (
 
         # for i in range(h):

@@ -46,7 +46,7 @@ def generate_word(data_path, input, page_infos):
     combined_ori = None
     for char in input:
         code = ord(char)
-        print(char)
+        # print(char)
         label, connect_list, avg_ori  = load_infos(data_path, code)
         img = cv.imread(f'{data_path}/frames/{code}.png', cv.IMREAD_GRAYSCALE)
         #transform
@@ -54,6 +54,11 @@ def generate_word(data_path, input, page_infos):
         new_img, trans_parts, connect_list, avg_ori = tf.transform(img, parts, connect_list, avg_ori)
         #combine parts, out: combined_char
         combine_img, combine_ori = cp.combine_parts(new_img, trans_parts, connect_list, avg_ori)
+        cv.imwrite(f'MyHandWriting/debug/{code}.png', combine_img)
+        # closing
+        combine_img = np.where(combine_img ==0, 255, 0).astype(np.uint8)
+        combine_img  = cv.morphologyEx(combine_img , cv.MORPH_CLOSE, np.ones((5, 5)))
+        combine_img = np.where(combine_img==0, 255, 0).astype(np.uint8)
         # new orientation and bounding box
         bound, _ = box.get_bounding_box(combine_img)
         bottom_line = box.get_combined_bottom_line(combine_img, code, data_path)
