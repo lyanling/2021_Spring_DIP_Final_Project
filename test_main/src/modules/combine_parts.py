@@ -95,5 +95,18 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 		out_img[r, c] = 0
 		ori = aver_orientation[n]
 		ori_img[r, c] = ori
+
+	extend = 10
+	h += extend * 2
+	w += extend * 2
+
+	ext_out_img = np.zeros([h, w])
+	ext_out_img.fill(255)
+	ext_out_img[extend:h-extend, extend:w-extend] = out_img
+
+	ext_ori_img = np.zeros([h, w])
+	ext_ori_img.fill(-1)
+	ext_ori_img[extend:h-extend, extend:w-extend] = ori_img
+
 	
-	return out_img, ori_img
+	return ext_out_img, ext_ori_img
