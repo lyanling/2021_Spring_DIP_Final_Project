@@ -8,7 +8,7 @@ import pickle
 from pathlib import Path
 import gen_debug as debug
 import bounding_box as box
-
+import resize
 
 def save_page(page_infos):
     if page_infos['bottom line']:
@@ -79,10 +79,17 @@ def generate_word(data_path, input, page_infos):
         bound, _ = box.get_bounding_box(combine_img)
         bottom_line = box.get_combined_bottom_line(combine_img, code, data_path)
         h1, h2, w1, w2 = bound
-        bounded_combine_img = combine_img[h1:h2+1, w1:w2+1]
+        combine_img = combine_img[h1:h2+1, w1:w2+1]
+        combine_ori = combine_ori[h1:h2+1, w1:w2+1]
+        # resize
+        combine_img, bottom_line = resize.resize(combine_img, bottom_line, page_infos['font size'])
+        combine_ori, _ = resize.resize(combine_ori, 0, page_infos['font size'])
+        bound, _ = box.get_bounding_box(combine_img)
+        h1, h2, w1, w2 = bound
+        combine_img = combine_img[h1:h2+1, w1:w2+1]
         combine_ori = combine_ori[h1:h2+1, w1:w2+1]
         #combine char (maybe it should tell us the orientation of left image)
-        combined, combined_floor, combined_ori = cmbchar.combine_char(combined, bounded_combine_img, combined_ori, combine_ori, combined_floor, bottom_line, page_infos['tracking'])
+        combined, combined_floor, combined_ori = cmbchar.combine_char(combined, combine_img, combined_ori, combine_ori, combined_floor, bottom_line, page_infos['tracking'])
     # paste the combined word to page
     if page_infos['word offset'] + combined.shape[1] > page_infos['page'].shape[1] - page_infos['word end']:
         new_line(page_infos)
