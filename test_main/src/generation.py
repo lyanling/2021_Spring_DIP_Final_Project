@@ -64,10 +64,11 @@ def generate_word(data_path, input, page_infos):
     combined = None
     combined_floor = None
     combined_ori = None
+    last_width = 0
     for char in input:
         code = ord(char)
         # print(code)
-        # print(char)
+        print(char)
         label, connect_list, avg_ori  = load_infos(data_path, code)
         img = cv.imread(f'{data_path}/frames/{code}.png', cv.IMREAD_GRAYSCALE)
         #transform
@@ -96,7 +97,7 @@ def generate_word(data_path, input, page_infos):
         combine_ori = combine_ori[h1:h2+1, w1:w2+1]
         # cv.imwrite(f'combined_resize/{code}.png', combine_img)
         #combine char (maybe it should tell us the orientation of left image)
-        combined, combined_floor, combined_ori = cmbchar.combine_char(combined, combine_img, combined_ori, combine_ori, combined_floor, bottom_line, page_infos['tracking'])
+        combined, combined_floor, combined_ori, last_width = cmbchar.combine_char(combined, combine_img, combined_ori, combine_ori, combined_floor, bottom_line, page_infos['tracking'], last_width)
 
     # paste the combined word to page
     if page_infos['word offset'] + combined.shape[1] > page_infos['page'].shape[1] - page_infos['word end']:
