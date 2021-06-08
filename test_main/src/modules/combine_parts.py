@@ -58,6 +58,8 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 
 	for part in bold_parts:
 		r, c = np.array(part).T
+		if (len(r <= 0)):
+			continue
 		min_h = min(min_h, min(r))
 		min_w = min(min_w, min(c))
 		max_h = max(max_h, max(r))
