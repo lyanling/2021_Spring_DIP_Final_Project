@@ -180,6 +180,8 @@ def transform(img, parts, connect_list, aver_orientation, code):
         # get new part
         # new_part = getPartFromImg(trans_img)
         new_part = np.array(np.where(trans_img == 0)).T
-        trans_parts.append(new_part)
+        trans_parts.append(new_part.tolist())
+        # print(new_part)
+        # print(new_part.tolist())
     
     return new_img, trans_parts, connect_list, aver_orientation

@@ -3,12 +3,14 @@ from . import geo_modify as gm
 
 
 def adjust_connect_list(connect_list, c_label, new_label, shift_value):
-    connect_labels = list(connect_list[c_label-1])
-    for connect_label in connect_labels:
-        r = connect_list[connect_label-1][c_label][0] + shift_value[0]
-        c = connect_list[connect_label-1][c_label][1] + shift_value[1]
-    	connect_list[connect_label-1].pop(c_label, None)
-        connect_list[connect_label-1][new_label] = (r, c)
+	connect_labels = list(connect_list[c_label-1])
+	for connect_label in connect_labels:
+		if connect_label == new_label:
+			continue
+		r = connect_list[connect_label-1][c_label][0] + shift_value[0]
+		c = connect_list[connect_label-1][c_label][1] + shift_value[1]
+		connect_list[connect_label-1].pop(c_label, None)
+		connect_list[connect_label-1][new_label] = (r, c)
 
 def shift_part(parts, label, shift_value):
     point_num = len(parts[label-1])
@@ -52,7 +54,7 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 			label_connect_point = connect_list[c_label-1][label]	# the point in another part that connects this part
 			shift_value = (label_connect_point[0] - c_connect_point[0], label_connect_point[1] - c_connect_point[1])
 			shift_part(bold_parts, c_label, shift_value)
-			adjust_connect_list(connect_list, c_label, shift_value)	# adjust the information of connecting points, 
+			adjust_connect_list(connect_list, c_label, label, shift_value)	# adjust the information of connecting points, 
 																		# since the position has changed
 			merge_parts(bold_parts, c_label, label)
 			# new_connect_labels = new_connect_list[c_label-1]
@@ -72,7 +74,7 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 		max_w = max(max_w, max(c))
 	h = max_h - min_h + 1
 	w = max_w - min_w + 1
-
+	# print(h, w)
 	# method 1
 	out_img = np.zeros([h, w])
 	out_img.fill(255)
