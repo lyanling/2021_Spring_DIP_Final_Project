@@ -11,6 +11,8 @@ import bounding_box as box
 
 
 def save_page(page_infos):
+    if page_infos['bottom line']:
+        draw_bottom_line(page_infos)
     path = page_infos['save path']
     page = page_infos['page']
     order = page_infos['order']
@@ -24,6 +26,20 @@ def new_page(page_infos, size = (3508, 2480)):
     page_infos['line offset'] = page_infos['header']
     page_infos['word offset'] = page_infos['word start']
     page_infos['order'] += 1
+    return
+
+def draw_bottom_line(page_infos):
+    color = page_infos['bottom line color']
+    page = page_infos['page']
+    header = page_infos['header']
+    leading = page_infos['leading']
+    footer = page_infos['footer']
+    for i in range(header, page.shape[0] - footer, leading):
+        line = page[i, page_infos['word start']:-page_infos['word end']]
+        draw_area = np.where(line==255)
+        line[draw_area] = color
+        page[i, page_infos['word start']:-page_infos['word end']] = line
+    page_infos['page'] = page
     return
 
 def new_line(page_infos):
@@ -89,25 +105,13 @@ def generate_sentence(data_path, input, page_infos):
             new_line(page_infos)
     return
 
-def generate_text(data_path, text_path, leading, word_spacing, tracking, header, footer):
+def generate_text(data_path, text_path, page_infos):
     # init page
     size = (3508, 2480)
-    page_infos = {}
-    page_infos['save path'] = f'{data_path}/generate'
-    page_infos['text name'] = Path(text_path).name
-    page_infos['header'] = header
-    page_infos['footer'] = footer
-    page_infos['leading'] = leading
-    page_infos['word-spacing'] = word_spacing
-    page_infos['tracking'] = tracking
-    page_infos['word start'] = 10
-    page_infos['word end'] = 10
-    page_infos['line offset'] = page_infos['header']
-    page_infos['word offset'] = 10
-    page_infos['order'] = 0
     page_infos['page'] = np.zeros(size, dtype=np.uint8)
     page_infos['page'].fill(255)
-    print(page_infos['page'])
+    if page_infos['bottom line']:
+        draw_bottom_line(page_infos)
     with open(text_path, 'r') as fin:
         rows = fin.readlines()
         for row in rows:

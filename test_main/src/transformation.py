@@ -138,7 +138,7 @@ def transform(img, parts, connect_list, aver_orientation):
 
         trans_pos[0] = np.round(trans_pos[0]).astype(int)
         trans_pos[1] = np.round(trans_pos[1]).astype(int)
-
+        trans_pos = tuple([trans_pos[0], trans_pos[1]])
         trans_img[:, :] = part_img[trans_pos].reshape((h, w))
         trans_img = np.where(trans_check_1 < 0, 255, trans_img)
         trans_img = np.where(trans_check_1 > h-1, 255, trans_img)
