@@ -9,12 +9,15 @@ from pathlib import Path
 import gen_debug as debug
 import bounding_box as box
 import resize
+import changeColor as col
 
 def save_page(page_infos):
-    if page_infos['bottom line']:
-        draw_bottom_line(page_infos)
     path = page_infos['save path']
     page = page_infos['page']
+    page = col.changeColor(page, page_infos['font color'])
+    page_infos['page'] = page
+    if page_infos['bottom line']:
+        draw_bottom_line(page_infos)
     order = page_infos['order']
     text_name = page_infos['text name']
     cv.imwrite(f'{path}/{text_name}_{order}.png', page)
@@ -29,15 +32,16 @@ def new_page(page_infos, size = (3508, 2480)):
     return
 
 def draw_bottom_line(page_infos):
-    color = page_infos['bottom line color']
+    # color = page_infos['bottom line color']
     page = page_infos['page']
     header = page_infos['header']
     leading = page_infos['leading']
     footer = page_infos['footer']
     for i in range(header, page.shape[0] - footer, leading):
         line = page[i, page_infos['word start']:-page_infos['word end']]
-        draw_area = np.where(line==255)
-        line[draw_area] = color
+        draw_area = np.where(np.all(line == np.array([255, 255, 255]), axis=-1))
+        print(draw_area)
+        line[draw_area, :] = np.array([127, 127, 127])
         page[i, page_infos['word start']:-page_infos['word end']] = line
     page_infos['page'] = page
     return
@@ -97,7 +101,9 @@ def generate_word(data_path, input, page_infos):
     # print(combined_floor)
     paste_start = page_infos['line offset'] - combined_floor
     # print(paste_start)
-    page[paste_start:paste_start + combined.shape[0], page_infos['word offset']:page_infos['word offset']+combined.shape[1]] = combined
+    paste_area = page[paste_start:paste_start + combined.shape[0], page_infos['word offset']:page_infos['word offset']+combined.shape[1]]
+    paste_area = np.where(combined != 255, combined, paste_area)
+    page[paste_start:paste_start + combined.shape[0], page_infos['word offset']:page_infos['word offset']+combined.shape[1]] = paste_area
     page_infos['page'] = page
     page_infos['word offset'] += combined.shape[1]
     return
@@ -117,8 +123,6 @@ def generate_text(data_path, text_path, page_infos):
     size = (3508, 2480)
     page_infos['page'] = np.zeros(size, dtype=np.uint8)
     page_infos['page'].fill(255)
-    if page_infos['bottom line']:
-        draw_bottom_line(page_infos)
     with open(text_path, 'r') as fin:
         rows = fin.readlines()
         for row in rows:

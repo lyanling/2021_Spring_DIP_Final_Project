@@ -5,7 +5,7 @@ import bounding_box as box
 
 def resize(img, bottom_line, size=12):
     h, w = img.shape
-    print(h, w)
+    # print(h, w)
     extend = max(round(((round((size/36)) - 1) / 2) * max(h, w)), 0)
     h += extend*2
     w += extend*2
