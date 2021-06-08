@@ -164,7 +164,8 @@ def generate_text(data_path, text_path, page_infos):
             # row = row.strip()
             if len(row) > 0:
                 generate_sentence(data_path, row, page_infos)
-            # new line new page
-            new_line(page_infos)
+            else:
+                # new line new page
+                new_line(page_infos)
     save_page(page_infos)
     return

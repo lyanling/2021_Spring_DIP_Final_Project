@@ -1,14 +1,12 @@
 import numpy as np
+import webcolors
 
 def changeColor(img, color='black'):
 	rgb = np.array([0, 0, 0])
-	if  color == 'red':
-		rgb[2] = 255
-	elif color == 'green':
-		rgb[1] = 255
-	elif color == 'blue':
-		rgb[0] = 255
-	
+	rgb_tri = webcolors.name_to_rgb(color)
+	rgb[0] = rgb_tri[2]
+	rgb[1] = rgb_tri[1]
+	rgb[2] = rgb_tri[0]
 	h, w = img.shape
 	c = 3
 

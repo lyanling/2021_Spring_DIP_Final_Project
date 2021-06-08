@@ -8,7 +8,7 @@ parser.add_argument('data_path', help="handwriting directory generate by \"divid
 
 # parser.add_argument('--out', dest="out_path", metavar="./MyHandWriting", default="./MyHandWriting",help="output directory")
 parser.add_argument('--l', dest="leading", type=int, default=80, help="leading")
-parser.add_argument('--w', dest="word_spacing", type=int, default=70, help="word-spacing")
+parser.add_argument('--w', dest="word_spacing", type=int, default=30, help="word-spacing")
 parser.add_argument('--t', dest="tracking", type=int, default=5, help="letter-spacing")
 parser.add_argument('--head', dest="header", type=int, default=150, help="page header")
 parser.add_argument('--foot', dest="footer", type=int, default=150, help="page footer")
