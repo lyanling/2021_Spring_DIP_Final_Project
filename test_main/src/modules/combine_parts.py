@@ -11,6 +11,7 @@ def adjust_connect_list(connect_list, c_label, new_label, shift_value):
 		c = connect_list[connect_label-1][c_label][1] + shift_value[1]
 		connect_list[connect_label-1].pop(c_label, None)
 		connect_list[connect_label-1][new_label] = (r, c)
+		connect_list[new_label-1][connect_label] = connect_list[c_label-1][connect_label]
 
 def shift_part(parts, label, shift_value):
     point_num = len(parts[label-1])
@@ -46,10 +47,12 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 	for i in range(len(connect_list)-1, -1, -1):
 		connect_labels = list(connect_list[i])
 		c_label = i+1
-		if len(connect_labels) > 0:		# connect this part to bigger part
-			label = connect_labels[0]
+		for i in range(len(connect_labels)):		# connect this part to bigger part
+			label = connect_labels[i]
 			# if (c_label <= label and (len(new_connect_list[c_label-1]) > 0)):		# the smaller label, the bigger part
 			# 	continue
+			if not c_label in connect_list[label-1].keys():
+				continue
 			c_connect_point = connect_list[label-1][c_label]	# the point in this part that connects another part
 			label_connect_point = connect_list[c_label-1][label]	# the point in another part that connects this part
 			shift_value = (label_connect_point[0] - c_connect_point[0], label_connect_point[1] - c_connect_point[1])
@@ -60,6 +63,7 @@ def combine_parts(img, bold_parts, connect_list, aver_orientation):
 			# new_connect_labels = new_connect_list[c_label-1]
 			# adjust_connect_parts(bold_parts, connect_list, new_connect_labels, shift_value)
 			# new_connect_list[label-1].append(c_label)
+			break
 
 	min_h, min_w = 1000, 1000
 	max_h, max_w = -1000, -1000
