@@ -2,7 +2,9 @@
 
 ## Requirement
 opencv-python 4.5.1
+
 opencv-contrib-python 4.5.1
+
 webcolors 1.11.1
 ## Usage
 * Part I: divide characters into parts : ) ) )
