@@ -58,8 +58,8 @@ webcolors 1.11.1
     ```
 ## Inputs
 #### input image example
-![](https://i.imgur.com/gC1Zn0D.jpg =400x)
-![](https://i.imgur.com/myVTWH8.jpg =400x)
+![](https://i.imgur.com/gC1Zn0D.jpg)
+![](https://i.imgur.com/myVTWH8.jpg)
 #### text.txt
 ```
 I'm lazy in everything.
@@ -71,6 +71,6 @@ Sorry for the bad rhyming.
 Maybe you can do better than me.
 ```
 ## Result
-![](https://i.imgur.com/860QGEs.png =500x)
-![](https://i.imgur.com/1589Qvf.png =500x)
-![](https://i.imgur.com/yyMKFFK.png =500x)
+![](https://i.imgur.com/860QGEs.png)
+![](https://i.imgur.com/1589Qvf.png)
+![](https://i.imgur.com/yyMKFFK.png)
